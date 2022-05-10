@@ -1,0 +1,9 @@
+controller_list:
+  - name: rat_arm_controller
+    action_ns: follow_joint_trajectory
+    type: FollowJointTrajectory
+    default: True
+    joints:
+      - base_joint
+      - elbow_joint
+      - wrist_joint
