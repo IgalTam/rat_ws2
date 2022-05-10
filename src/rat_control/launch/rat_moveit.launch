@@ -1,0 +1,29 @@
+
+<launch>
+    <!-- Load the URDF to the parameter server -->
+    <!-- <param name="robot_description" textfile="$(find raturdf4)/urdf/raturdf4.urdf"/> -->
+
+    <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
+    <include file="$(find urdf_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/>
+    </include>
+
+  <node name="rat_moveit" pkg="rat_control" type="rat_moveit" respawn="false" output="screen">
+  </node>
+    <!-- Show in Rviz 
+    <node name="rviz" pkg="rviz" type="rviz"/> -->
+
+<rosparam file="$(find rat_control)/cfg/rat_controller.yaml" command="load"/>
+
+    <!-- Load controller manager  -->
+    <node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
+    output="screen" args="spawn joint_state_controller position_trajectory_controller" />
+
+
+    <!-- <include file="$(find urdf_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="true"/> -->
+    <!-- </include> -->
+
+
+
+</launch>

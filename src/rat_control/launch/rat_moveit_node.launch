@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="rat_control" type="rat_moveit" name="rat_moveit" output="screen"/>
+</launch>
