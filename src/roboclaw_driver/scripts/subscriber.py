@@ -12,7 +12,7 @@ class RoboclawNode:
     # config file maps address/channel to index in armCmd.msg
     # number of joints is specified in armCmd.msg AND in joint_config.ini
     parser = ConfigParser()
-    parser.read("joint_config.ini")
+    parser.read("/home/pi/ros_stuff/rat_ws2/src/roboclaw_driver/scripts/joint_config.ini")
     num_joints = int(parser['JOINTS']['num_joints'])
     joint_addresses= parser['JOINTS']['addresses'].split(", ") # address of roboclaw for that joint
     joint_channels = parser['JOINTS']['channels'].split(", ")
@@ -40,6 +40,18 @@ class RoboclawNode:
         
         self.rc = Roboclaw(self.joint_comports[0], self.BAUDRATE) # comports are not gonna change for us
         self.rc.Open()
+        self.center_motors()
+
+    def center_motors(self):
+        for i in range(self.num_joints):
+            address = int(self.joint_addresses[i]) # default: 0x80 or 128
+            channel = int(self.joint_channels[i])
+            cnts_per_rev = int(self.joint_cnts_per_rev[i])
+
+            if channel == 1:
+                self.rc.SetEncM1(address,cnts_per_rev)
+            if channel == 2:
+                self.rc.SetEncM2(address,cnts_per_rev)
 
     def callback(self, data):
 
@@ -89,6 +101,7 @@ class RoboclawNode:
                 # calculate encoder counts to write to motor
                 cnts1 = self.rads_to_enc_cnts(cnts_per_rev, rads)
                 if cnts1 == cur_enc_val:
+                    rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
                 self.rc.SpeedAccelDeccelPositionM1(address,accel1,speed1,deccel1,cnts1,buf)
                 rospy.loginfo(f'Writing {cnts1}')
@@ -103,6 +116,7 @@ class RoboclawNode:
                 # calculate encoder counts to write to motor
                 cnts2 = self.rads_to_enc_cnts(cnts_per_rev, rads)
                 if cnts2 == cur_enc_val:
+                    rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
                 rospy.loginfo(f'Writing {cnts2}')
                 self.rc.SpeedAccelDeccelPositionM2(address,accel2,speed2,deccel2,cnts2,buf)
