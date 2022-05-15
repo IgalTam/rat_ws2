@@ -14,9 +14,9 @@ def talker():
         msg.speed = [0, 0, 0, 0]
         msg.accel_deccel = [0, 0, 0, 0]
 
-        for i in range(4):
+        for i in range(0,2):
             rads= float(input("enter position in radians: "))
-            if rads < 0 or rads > 6.283184:
+            if rads < -6.283184 or rads > 6.283184:
                 rospy.loginfo("please enter a valid position in radians (0 to 6.283184...)") 
                 continue
             msg.position_rads[i] = rads

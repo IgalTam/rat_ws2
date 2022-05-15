@@ -11,12 +11,12 @@ find_package(catkin REQUIRED COMPONENTS message_generation cmake_modules hardwar
 moveit_ros_planning
 moveit_ros_planning_interface
 moveit_ros_perception
-rviz_visual_tools
-moveit_visual_tools
+# rviz_visual_tools
+# moveit_visual_tools
 pluginlib
 geometric_shapes
-pcl_ros
-pcl_conversions
+# pcl_ros
+# pcl_conversions
 rosbag
 tf2_ros
 tf2_eigen
@@ -120,9 +120,9 @@ catkin_package(
   INCLUDE_DIRS
   CATKIN_DEPENDS
     moveit_core
-    moveit_visual_tools
+    # moveit_visual_tools
     moveit_ros_planning_interface
-    interactive_markers
+    # interactive_markers
     tf2_geometry_msgs
     message_runtime
   DEPENDS
@@ -158,18 +158,18 @@ target_link_libraries(rat_hw_main
   ${catkin_LIBRARIES}
 )
 
-add_executable(rat_moveit
-  src/rat_moveit.cpp
-)
+# add_executable(rat_moveit
+#   src/rat_moveit.cpp
+# )
 
-target_link_libraries(rat_moveit
-  ${catkin_LIBRARIES} 
-  ${Boost_LIBRARIES})
+# target_link_libraries(rat_moveit
+#   ${catkin_LIBRARIES} 
+#   ${Boost_LIBRARIES})
 
-add_dependencies(rat_moveit ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-  target_link_libraries(rat_hw_main
-    ${catkin_LIBRARIES}
-  )
+# add_dependencies(rat_moveit ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#   target_link_libraries(rat_hw_main
+#     ${catkin_LIBRARIES}
+#   )
 # add_executable(rat_sim_echo
 #   src/rat_sim_echo.cpp
 # )

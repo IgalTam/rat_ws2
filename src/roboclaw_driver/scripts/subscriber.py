@@ -18,7 +18,7 @@ class RoboclawNode:
     joint_channels = parser['JOINTS']['channels'].split(", ")
     joint_comports = parser['JOINTS']['comports'].split(", ")
     joint_cnts_per_rev = parser['JOINTS']['cnts_per_rev'].split(", ")
-    
+    joint_direction = parser['JOINTS']['flip_direction'].split(", ")
     BAUDRATE = 115200
     FLOAT_EPSILON = 0.0001 # motor angle tolerance
 
@@ -74,14 +74,14 @@ class RoboclawNode:
             # Linux comport name
             #rc.Open()
             
-
+            flip_direction = self.joint_direction[i]
             buf = 1
             accel1 = 0
-            speed1 = 0
+            speed1 = 100
             deccel1 = 0
             cnts1 = 0
             accel2 = 0
-            speed2 = 0
+            speed2 = 100
             deccel2 = 0
             cnts2 = 0
 
@@ -100,6 +100,8 @@ class RoboclawNode:
                 #     continue # done write an unneccesary value to motor
                 # calculate encoder counts to write to motor
                 cnts1 = self.rads_to_enc_cnts(cnts_per_rev, rads)
+                if flip_direction:
+                        cnts1 = (2*cnts_per_rev) - cnts1
                 if cnts1 == cur_enc_val:
                     rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
@@ -112,7 +114,8 @@ class RoboclawNode:
                 rospy.loginfo(f'Motor {i} {cur_enc_val}')
                 # populate telemetry message
                 telem_msg.angle[i] = cur_angle
-
+                if flip_direction:
+                        cnts2 = (2*cnts_per_rev) - cnts2
                 # calculate encoder counts to write to motor
                 cnts2 = self.rads_to_enc_cnts(cnts_per_rev, rads)
                 if cnts2 == cur_enc_val:
@@ -152,7 +155,7 @@ class RoboclawNode:
         self.telem_pub = rospy.Publisher('roboclaw_telemetry', ratTelemetry, queue_size=5)
         rospy.init_node('roboclaw_node', anonymous=True)
         rospy.Subscriber('roboclaw_cmd', armCmd, self.callback, queue_size=5, buff_size=128)
-        print(f'Num Joints: {self.num_joints}\n Joint Config:\n  Addresses: {self.joint_addresses}\n  Channels: {self.joint_channels}\n  Comports: {self.joint_comports}\n  Counts per Revolution: {self.joint_cnts_per_rev}')
+        print(f'Num Joints: {self.num_joints}\n Joint Config:\n  Addresses: {self.joint_addresses}\n  Channels: {self.joint_channels}\n  Comports: {self.joint_comports}\n  Counts per Revolution: {self.joint_cnts_per_rev}\n  Flip direction? : {self.joint_direction}')
         rospy.loginfo('Listening...\n')
 
 

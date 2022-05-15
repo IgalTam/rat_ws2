@@ -10,7 +10,7 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 import argparse as ap
-from math import pi, tau, dist, fabs, cos
+from math import pi, tau, fabs, cos
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 
