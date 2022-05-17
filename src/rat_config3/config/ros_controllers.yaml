@@ -6,7 +6,7 @@ controller_list:
       - base_joint
       - elbow_joint
       - wrist_joint
-      - rollmotor
+      # - rollmotor
 
 # rat_arm_controller:
 #   type: effort_controllers/JointTrajectoryController

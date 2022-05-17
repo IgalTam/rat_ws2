@@ -3,7 +3,7 @@
  <!-- RVIZ  -->
    
     <!-- Load the URDF to the parameter server -->
-    <param name="robot_description" textfile="$(find raturdf5)/urdf/raturdf5.urdf"/>
+    <param name="robot_description" textfile="$(find urdf6)/urdf/urdf6.urdf"/>
 
 
     <!-- Show in Rviz  -->
@@ -38,7 +38,7 @@
  <!-- MOVEIT -->
 
     <!-- Load the URDF, SRDF and other .yaml configuration files on the param server -->
-    <include file="$(find rat_config)/launch/planning_context.launch">
+    <include file="$(find rat_config3)/launch/planning_context.launch">
     <arg name="load_robot_description" value="true"/>
     </include>
 
@@ -48,7 +48,7 @@
   
 
     <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
-    <include file="$(find rat_config)/launch/move_group.launch">
+    <include file="$(find rat_config3)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <!-- <arg name="fake_execution" value="false"/> -->
     <arg name="info" value="true"/> 

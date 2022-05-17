@@ -58,10 +58,10 @@ class RoboclawNode:
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
         # init message to publish for hardware interface telem_callback
         telem_msg = ratTelemetry()
-        if input("Send commands to RoboClaws? (Yes/no)") != "Yes":
+        if input("Send commands to RoboClaws? (Yes/no): ") != "Yes":
             rospy.loginfo(rospy.get_caller_id() + "ignoring last message")
             return
-        for i in range(self.num_joints):
+        for i in range(2, self.num_joints):
             # fetch data from config file
             address = int(self.joint_addresses[i]) # default: 0x80 or 128
             channel = int(self.joint_channels[i])
