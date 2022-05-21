@@ -69,28 +69,6 @@ class RoboclawNode:
         return True
 
     def callback(self, data):
-        # upon getting a msg, check if previous msg is the same
-        if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
-            self.same_msg_cnt += 1
-        else:
-           # print("new message")
-            self.same_msg_cnt = 0
-            self.old_data = data
-            return
-
-        if self.same_msg_cnt > 5: # data has stabilized write it
-            self.same_msg_cnt = 0
-           # print("data stabilized")
-            
-        else:
-           # print("same data recieved")
-            return
-        if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
-            return
-        print("writing")
-        
-
-
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
         # init message to publish for hardware interface telem_callback
         telem_msg = ratTelemetry()
@@ -118,12 +96,11 @@ class RoboclawNode:
                 speed1 = 300
                 speed2 = 300
             else:
-                speed1 = 60
-                speed2 = 60
+                speed1 = 150
+                speed2 = 150
             deccel1 = 0
             cnts1 = 0
             accel2 = 0
-            #speed2 = 100
             deccel2 = 0
             cnts2 = 0
 

@@ -7,7 +7,10 @@
 
 
     <!-- Show in Rviz  -->
-    <node name="rviz" pkg="rviz" type="rviz"/>
+    <!-- <node name="rviz" pkg="rviz" type="rviz"/> -->
+  <include file="$(find rat_config3)/launch/moveit_rviz.launch">
+    <arg name="rviz_config" value="$(dirname)/moveit.rviz"/>
+  </include>
 
 
 
