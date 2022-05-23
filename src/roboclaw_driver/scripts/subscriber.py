@@ -69,6 +69,13 @@ class RoboclawNode:
         return True
 
     def callback(self, data):
+        if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+            print("Actuating Claw...")
+            #address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
+            self.rc.SpeedAccelDeccelPositionM1(129, 0, 100, 0, 58, 1)
+            time.sleep(0.2)
+            self.rc.SetEncM1(address, 0) # reset this encoder
+            return
         # upon getting a msg, check if previous msg is the same
         if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
             self.same_msg_cnt += 1
@@ -78,7 +85,7 @@ class RoboclawNode:
             self.old_data = data
             return
 
-        if self.same_msg_cnt > 5: # data has stabilized write it
+        if self.same_msg_cnt > 3: # data has stabilized write it
             self.same_msg_cnt = 0
            # print("data stabilized")
             
@@ -105,8 +112,12 @@ class RoboclawNode:
 
             # fetch data from armCmd.msg
             rads = data.position_rads[i]
-            speed = data.speed[i]
+            speed = data.speed[i] # not used
             # accel = data.accel_deccel[i]
+
+            if i == 1: # add elbow offset
+                rads -= 0.0698 # ~4 degrees
+
 
             # Linux comport name
             #rc.Open()

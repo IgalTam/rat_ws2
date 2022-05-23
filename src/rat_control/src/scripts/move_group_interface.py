@@ -1,10 +1,9 @@
 #!/usr/bin/python3
-from email import parser
-from ntpath import join
 import sys
-import copy
-from turtle import forward
 
+
+import rospy
+from roboclaw_driver.msg import armCmd
 import numpy as np
 import rospy
 import moveit_commander
@@ -178,6 +177,7 @@ class MoveGroupInterface(object):
         rospy.init_node("move_group_interface", anonymous=True)
 
 
+
         ## Instantiate a `RobotCommander`_ object. Provides information such as the robot's
         ## kinematic model and the robot's current joint states
         robot = moveit_commander.RobotCommander()
@@ -221,6 +221,7 @@ class MoveGroupInterface(object):
             print("")
 
         # Misc variables
+        self.cmd_pub = rospy.Publisher('roboclaw_cmd', armCmd, queue_size=10) # for publishing claw actuation
         self.box_name = ""
         self.robot = robot
         self.scene = scene
@@ -231,12 +232,17 @@ class MoveGroupInterface(object):
         self.group_names = group_names
     
     def actuate_claw(self):
-        rc = Roboclaw("/dev/ttyS0", 115200)
-        rc.Open()
-        address = 0x81
-        rc.SetEncM1(address, 0) # reset this encoder
-        rc.SpeedAccelDeccelPositionM1(address,0,100,0,57,1)
-
+        # rc = Roboclaw("/dev/ttyS0", 115200)
+        # rc.Open()
+        # address = 0x81
+        # rc.SetEncM1(address, 0) # reset this encoder
+        # rc.SpeedAccelDeccelPositionM1(address,0,100,0,57,1)
+        msg = armCmd()
+        msg.position_rads = [0, 0, 0, 1]
+        msg.speed = [0, 0, 0, 0]
+        msg.accel_deccel = [0, 0, 0, 0]
+        self.cmd_pub.publish(msg)
+        
     def go_to_joint_goal(self, joint_angles:list):
 
         self.move_group.set_joint_value_target({"base_joint": joint_angles[0],
@@ -294,10 +300,17 @@ def main_interactive():
 
 
             # check if input is int or float
-            if new_x.replace('.', '', 1).isdigit(): 
+
+            if new_x[0] == '-' and new_x[1:].replace('.', '', 1).isdigit(): # used to handle negative values
                 x = float(new_x)
-            if new_z.replace('.', '', 1).isdigit(): 
+            elif new_x.replace('.', '', 1).isdigit(): 
+                x = float(new_x)
+
+            if new_z[0] == '-' and new_z[1:].replace('.', '', 1).isdigit(): # used to handle negative values
                 z = float(new_z)
+            elif new_z.replace('.', '', 1).isdigit(): 
+                z = float(new_z)
+
             if new_phi_lo.replace('.', '', 1).isdigit(): 
                 new_phi_lo = int(new_phi_lo)
                 if new_phi_lo >= 0 and new_phi_lo<= 360: # check its a valid angle
