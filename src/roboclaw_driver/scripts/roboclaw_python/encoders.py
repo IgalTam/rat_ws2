@@ -5,12 +5,15 @@ from roboclaw_3 import Roboclaw
 
 #Linux comport name
 rc = Roboclaw("/dev/ttyS0", 115200)
-rc.Open()
-address = 0x80
+print(f"port open is {rc.Open()}")
+address = int(input("Roboclaw Address 128 or 129: "))
 # 0 just uses default values
 accel = 0
+accel = int(input("Acceleration (0 is default): "))
 speed = 100
+speed = int(input("Speed/Velocity (100 is default): "))
 deccel = 0
+deccel = int(input("deccel (0 is default): "))
 motor = 2
 motor = int(input("Motor 1 or 2: "))
 if motor != 1 and motor != 2:
