@@ -52,7 +52,11 @@ class RoboclawNode:
             address = int(self.joint_addresses[i]) # default: 0x80 or 128
             channel = int(self.joint_channels[i])
             cnts_per_rev = int(self.joint_cnts_per_rev[i])
-            if i == 2: # need to set the wrist to 90 degrees
+            
+            # if i == 2: # need to set the wrist to 90 degrees
+            #     cnts_per_rev += cnts_per_rev//4
+            # change made here
+            if i == 0: # need to set the wrist to 90 degrees
                 cnts_per_rev += cnts_per_rev//4
             if channel == 1:
                 self.rc.SetEncM1(address,cnts_per_rev)
@@ -124,6 +128,7 @@ class RoboclawNode:
             flip_direction = int(self.joint_direction[i])
             buf = 1
             accel1 = 0
+            # old code
             if i == 0: # base
                 speed1 = 370
                 speed2 = 370
@@ -133,6 +138,17 @@ class RoboclawNode:
             else: # wrist
                 speed1 = 90
                 speed2 = 90
+
+            # new code
+            if i == 0: # wrist
+                speed1 = 90
+                speed2 = 90
+            elif i == 1: # elbow
+                speed1 = 115
+                speed2 = 115
+            else:       # base
+                speed1 = 370
+                speed2 = 370
             deccel1 = 0
             cnts1 = 0
             accel2 = 0
