@@ -9,9 +9,9 @@ class Roboclaw:
 	def __init__(self, comport, rate, timeout=0.01, retries=3):
 		self.comport = comport
 		self.rate = rate
-		self.timeout = timeout;
+		self.timeout = timeout
 		self._trystimeout = retries
-		self._crc = 0;
+		self._crc = 0
 
 	#Command Enums
 	class Cmd():
@@ -142,6 +142,8 @@ class Roboclaw:
 		
 	def _readbyte(self):
 		data = self._port.read(1)
+		print(f"reading from port {self._port}")
+		print(f"data result: {data}")
 		if len(data):
 			val = ord(data)
 			self.crc_update(val)
@@ -158,18 +160,24 @@ class Roboclaw:
 
 	def _readlong(self):
 		val1 = self._readbyte()
+		print(f"readlong val result: {val1}")
 		if val1[0]:
+			print(f"val1 found")
 			val2 = self._readbyte()
 			if val2[0]:
+				print(f"val2 found")
 				val3 = self._readbyte()
 				if val3[0]:
+					print(f"val3 found")
 					val4 = self._readbyte()
 					if val4[0]:
+						print(f"val4 found")
 						return (1,val1[1]<<24|val2[1]<<16|val3[1]<<8|val4[1])
 		return (0,0)	
 
 	def _readslong(self):
 		val = self._readlong()
+		print(f"readslong val result: {val}")
 		if val[0]:
 			if val[1]&0x80000000:
 				return (val[0],val[1]-0x100000000)
@@ -257,12 +265,17 @@ class Roboclaw:
 			self._port.flushInput()
 			self._sendcommand(address,cmd)
 			val1 = self._readslong()
+			print(f"val1 result: {val1}")
 			if val1[0]:
+				print(f"val1 found: {val1[0]}")
 				val2 = self._readbyte()
 				if val2[0]:
+					print(f"val2 found: {val2[0]}")
 					crc = self._readchecksumword()
 					if crc[0]:
+						print(f"crc found: {crc[0]}")
 						if self._crc&0xFFFF!=crc[1]&0xFFFF:
+							print(f"crc invalid: {crc[1]}")
 							return (0,0)
 						return (1,val1[1],val2[1])
 			trys-=1
@@ -291,7 +304,7 @@ class Roboclaw:
 			crc = self._readchecksumword()
 			if crc[0]:
 				if self._crc&0xFFFF==crc[1]&0xFFFF:
-					return (data);
+					return (data)
 		return (0,0,0,0,0)
 
 	def _writechecksum(self):
@@ -1076,7 +1089,11 @@ class Roboclaw:
 	def Open(self):
 		try:
 			self._port = serial.Serial(port=self.comport, baudrate=self.rate, timeout=1, interCharTimeout=self.timeout)
-		except:
+		#except serial.SerialException:
+			#print("port not found/cannot be configured")
+			#return 0
+		except ValueError:
+			print("value error")
 			return 0
 		return 1
 

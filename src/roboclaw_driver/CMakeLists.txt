@@ -52,6 +52,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    armCmd.msg
    ratTelemetry.msg
+   hallSense.msg
  )
 
 ## Generate services in the 'srv' folder

@@ -4,18 +4,21 @@ from sys import exit
 from roboclaw_3 import Roboclaw
 
 #Linux comport name
-rc = Roboclaw("/dev/ttyS0", 115200)
-rc.Open()
-address = 0x80
+# rc = Roboclaw("/dev/ttyS0", 115200)
+rc = Roboclaw("/dev/ttyAMA1", 115200)
+print(f"port open is {rc.Open()}")
+address = int(input("Roboclaw Address 128 or 129: "))
 # 0 just uses default values
 accel = 0
-speed = 100
+speed = 200
 deccel = 0
 motor = 2
 motor = int(input("Motor 1 or 2: "))
+#motor = 1
 if motor != 1 and motor != 2:
-        print(f'Bad motor value: {motor}')
-        exit()
+    print(f"Bad motor value: {motor}")
+    #print("bad motor")
+    exit()
 
 # speed = int(input("Enter speed (1 to 2^16): "))
 # if speed < 1 or speed > 2**16:
@@ -24,7 +27,7 @@ if motor != 1 and motor != 2:
 
 
 
-#rc.ResetEncoders(address)
+# rc.ResetEncoders(address)
 print(f'Addr: {address} Motor: {motor} Speed: {speed}')
 while(True):
     if motor == 1:
