@@ -98,6 +98,15 @@ class MoveGroupInterface(object):
         msg.speed = [0, 0, 0, 0]
         msg.accel_deccel = [0, 0, 0, 0]
         self.cmd_pub.publish(msg)
+    
+    def position_claw(self, angle_rad: int):
+        """rotate claw motor to input angle"""
+        msg = armCmd()
+        msg.position_rads = [0, 0, 0, angle_rad]
+        msg.speed = [0, 0, 0, 0]
+        msg.accel_deccel = [0, 0, 0, 0]
+        self.cmd_pub.publish(msg)
+        # UNFINISHED
         
     def go_to_joint_goal(self, joint_angles:list):
 
@@ -214,6 +223,17 @@ def main_cmd(x=None, z=None, phi_range=None, claw=None, fk=None):
         arm_interface.go_to_joint_goal(joint_solution_angles)
 
 
+def nuada_main_cmd(x=None, z=None, phi_range=None, claw_pos=None) -> None:
+    """function for translating coordinates from vision team into
+    a goal state for the arm"""
+    # TODO: determine method of input for coordinates
+    # currently assuming that parameters come in as separate variables
+    arm_interface = MoveGroupInterface(silent=True)
+    if claw_pos is not None:
+        arm_interface.position_claw(int(claw_pos))
+    # UNFINISHED
+    
+
     
 if __name__ == "__main__":
     parser = ap.ArgumentParser()
@@ -222,12 +242,19 @@ if __name__ == "__main__":
     parser_fk = subparsers.add_parser('fwd_kin')
     parser_ik = subparsers.add_parser('inv_kin')
     parser_int = subparsers.add_parser('interactive')
+    parser_nu = subparsers.add_parser('nuada_main')
+
     parser_ik.add_argument('-x', type=float, required=True, help='X coordinate in meters')
     parser_ik.add_argument('-z', type=float, required=True, help='Z coordinate in meters')
     parser_ik.add_argument('--phi_range', type=int, nargs=2, required=True, help='range of angles for end effector orientation (degrees), angle is relative to x-axis')
     parser_ik.add_argument('--angle', type=float, required=False, help='Angle of end effector relative to x-axis')
-
     parser_ik.add_argument('--claw', action='store_true', required=False, help='print forward kinematics matrix of current joint values')
+
+    parser_nu.add_argument('-x', type=float, required=True, help='X coordinate in meters')
+    parser_nu.add_argument('-z', type=float, required=True, help='Z coordinate in meters')
+    parser_nu.add_argument('--phi_range', type=int, nargs=2, required=True, help='range of angles for end effector orientation (degrees), angle is relative to x-axis')
+    parser_nu.add_argument('--claw', type=float, required=False, help='Angle of end effector relative to x-axis')
+    
     #parser_ik.add_argument('--interactive', action='store_true', required=False, help='run program in interactive mode')
     #print(parser.parse_args())
 
@@ -236,6 +263,8 @@ if __name__ == "__main__":
         main_cmd(fk=True)
     elif args.subcommand == 'interactive':
         main_interactive()
+    elif args.subcommand == 'nuada_main':
+        nuada_main_cmd(args.x, args.z, args.phi_range, args.claw)
     elif not [x for x in vars(args).values() if x]: # check if any args were passed
         parser.print_help()
     else:
