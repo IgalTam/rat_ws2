@@ -7,26 +7,23 @@ from math import pi
 from roboclaw_driver.msg import armCmd, ratTelemetry
 from configparser import ConfigParser
 
+# for development: [M?C] designates feature pending on group approval/has questionable purpose
+
 class RoboclawNode:
 
-    # config file maps address/channel to index in armCmd.msg
-    # number of joints is specified in armCmd.msg AND in joint_config.ini
-    parser = ConfigParser()
-    parser.read("/home/pi/ros_stuff/rat_ws2/src/roboclaw_driver/scripts/joint_config.ini")
-    num_joints = int(parser['JOINTS']['num_joints'])
-    joint_addresses= parser['JOINTS']['addresses'].split(", ") # address of roboclaw for that joint
-    joint_channels = parser['JOINTS']['channels'].split(", ")
-    joint_comports = parser['JOINTS']['comports'].split(", ")
-    joint_cnts_per_rev = parser['JOINTS']['cnts_per_rev'].split(", ")
-    joint_direction = parser['JOINTS']['flip_direction'].split(", ")
+    # constants
     BAUDRATE = 115200
     FLOAT_EPSILON = 0.0001 # motor angle tolerance
-    old_data = armCmd()
-    old_data.position_rads = [0, 0, 0, 1.57]
-    writtendata = armCmd()
-    writtendata.position_rads = [0, 0, 0, 1.57]
-
     same_msg_cnt = 0
+    BASE_IDX = 0
+    ELBOW_IDX = 1
+    WRIST_IDX = 2
+    CLAW_IDX = 3
+    HALLPIN_1 = 17  # base hall effect
+    HALLPIN_2 = 18  # claw hall effect
+    same_msg_cnt = 0
+
+
     def rads_to_enc_cnts(self, cnts_per_rev, rads):
         """
         Takes angle in radians and the enocder counts per revolution 
@@ -40,9 +37,39 @@ class RoboclawNode:
             rads(float): desired angle 
         """
         return int(cnts_per_rev + (rads * (cnts_per_rev/(2*pi))))
+    
+    def enc_cnts_to_rads(self, cnts_per_rev, enc_counts):
+        """
+        Takes encoder counts and the enocder counts per revolution 
+        and converts encoder counts into radians for that motor.
+        NOTE: encoder cnts   <-> angle 
+              cnts_per_rev   <-> 0 rads
+              0              <-> -2pi rads
+              2*cnts_per_rev <-> 2pi rads 
+        args:
+            cnts_per_rev(uint): encoder counts equivalent to 0 radians for particular motor
+            enc_counts(int): desired encoder counts 
+        """
+        return int((enc_counts - cnts_per_rev) * ((2*pi)/cnts_per_rev))
 
     def __init__(self):
+        # config file maps address/channel to index in armCmd.msg
+        # number of joints is specified in armCmd.msg AND in joint_config.ini
+        parser = ConfigParser()
+        parser.read("/home/pi/ros_stuff/rat_ws2/src/roboclaw_driver/scripts/joint_config.ini")
+        self.num_joints = int(parser['JOINTS']['num_joints'])
+        self.joint_addresses= parser['JOINTS']['addresses'].split(", ") # address of roboclaw for that joint
+        self.joint_channels = parser['JOINTS']['channels'].split(", ")
+        self.joint_comports = parser['JOINTS']['comports'].split(", ")
+        self.joint_cnts_per_rev = parser['JOINTS']['cnts_per_rev'].split(", ")
+        self.joint_direction = parser['JOINTS']['flip_direction'].split(", ")
         
+        self.old_data = armCmd()
+        self.old_data.position_rads = [0, 0, 0, 1.57]
+        self.writtendata = armCmd()
+        self.writtendata.position_rads = [0, 0, 0, 1.57]
+        
+        # initialize roboclaw serial connection
         self.rc = Roboclaw(self.joint_comports[0], self.BAUDRATE) # comports are not gonna change for us
         self.rc.Open()
         self.center_motors()
@@ -67,14 +94,19 @@ class RoboclawNode:
             if not isclose(l1[i], l2[i]):
                 return False
         return True
+    
+    def homing_routine(self):
+        """TODO: implement homing routine"""
+        pass
 
     def callback(self, data):
-        if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+        # check if claw needs to be actuated, hacky as urdf does not know about claw
+        if data.position_rads[self.num_joints - 1] != 0: # [M?C], this may be better: != self.old_data.position_rads[self.num_joints - 1]:
             print("Actuating Claw...")
-            address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
-            self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
-            time.sleep(1)
-            self.rc.SetEncM1(address, 0) # reset this encoder
+            address = self.joint_addresses[self.CLAW_IDX] # int(self.joint_addresses[self.num_joints - 1])
+            self.rc.SpeedAccelDeccelPositionM1(self.joint_addresses[self.CLAW_IDX], 0, 200, 0, data.position_rads[self.num_joints - 1], 1)
+            time.sleep(1) # give time for write command to be sent over serial
+            self.rc.SetEncM1(address, 0) # reset this encoder [M?C]
             return
         # upon getting a msg, check if previous msg is the same
         if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
@@ -85,7 +117,7 @@ class RoboclawNode:
             self.old_data = data
             return
 
-        if self.same_msg_cnt > 3: # data has stabilized write it
+        if self.same_msg_cnt > 3: # data has stabilized -> write it
             self.same_msg_cnt = 0
            # print("data stabilized")
             
@@ -154,7 +186,7 @@ class RoboclawNode:
                 # if isclose(cur_angle, rads, rel_tol=self.FLOAT_EPSILON):
                 #     continue # done write an unneccesary value to motor
                 # calculate encoder counts to write to motor
-                cnts1 = self.rads_to_enc_cnts(cnts_per_rev, rads)
+                cnts1 = self.rads_to_enc_cnts(cnts_per_rev=cnts_per_rev, rads=rads)
                 if flip_direction:
                         #print(f'precnts1:{cnts1}')
                         cnts1 = (2*cnts_per_rev) - cnts1
@@ -173,7 +205,7 @@ class RoboclawNode:
                 rospy.loginfo(f'Motor {i} {cur_enc_val}')
                 # populate telemetry message
                 telem_msg.angle[i] = cur_angle
-                cnts2 = self.rads_to_enc_cnts(cnts_per_rev, rads)
+                cnts2 = self.rads_to_enc_cnts(cnts_per_rev=cnts_per_rev, rads=rads)
                 if flip_direction:
                         #print(f'precnts2:{cnts2}')
                         cnts2 = (2*cnts_per_rev) - cnts2
@@ -216,7 +248,7 @@ class RoboclawNode:
         # run simultaneously.
         self.telem_pub = rospy.Publisher('roboclaw_telemetry', ratTelemetry, queue_size=5)
         rospy.init_node('roboclaw_node', anonymous=True)
-        rospy.Subscriber('roboclaw_cmd', armCmd, self.callback, queue_size=256, buff_size=128)
+        rospy.Subscriber('nuada_roboclaw_cmd', armCmd, self.callback, queue_size=256, buff_size=128)
         print(f'Num Joints: {self.num_joints}\n Joint Config:\n  Addresses: {self.joint_addresses}\n  Channels: {self.joint_channels}\n  Comports: {self.joint_comports}\n  Counts per Revolution: {self.joint_cnts_per_rev}\n  Flip direction? : {self.joint_direction}')
         rospy.loginfo('Listening...\n')
 
