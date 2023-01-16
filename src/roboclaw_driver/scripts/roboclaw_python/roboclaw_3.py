@@ -142,8 +142,6 @@ class Roboclaw:
 		
 	def _readbyte(self):
 		data = self._port.read(1)
-		print(f"reading from port {self._port}")
-		print(f"data result: {data}")
 		if len(data):
 			val = ord(data)
 			self.crc_update(val)
