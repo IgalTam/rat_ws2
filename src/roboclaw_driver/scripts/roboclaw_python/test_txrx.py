@@ -2,6 +2,9 @@ import time
 from sys import exit
 from roboclaw_3 import Roboclaw
 
+# program used to test the roboclaw's read and write capabilities
+# through the serial port or via proper commands
+
 rc = Roboclaw("/dev/ttyAMA1", 115200)
 print(f"port open is {rc.Open()}")
 i = 0
@@ -19,4 +22,6 @@ while True:
     # rc._port.read(1)
     # time.sleep(0.25)
     rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, i, 1)
+    print(f'Current Encoder value = {rc.ReadEncM1(129)}')
+
     time.sleep(1)   # this is required for the RoboClaw to fully process commands

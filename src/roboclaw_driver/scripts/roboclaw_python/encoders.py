@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import time
 from sys import exit
+from sys import argv
 from roboclaw_3 import Roboclaw
 
 # constants
@@ -81,14 +82,8 @@ def configSettings():
 
     return address, accel, speed, deccel, motor
 
-if __name__ == "__main__":
-    #Linux comport name -> for UART3 on the Nuada Pi4, this is ttyAMA1)
-    rc = Roboclaw("/dev/ttyAMA1", 115200)
-    print(f"port open is {rc.Open()}")
-
-    accel = 0
-    speed = 200
-    deccel = 0
+def nuada_demo(accel, speed, deccel):
+    """arm demo sequence"""
 
     # Move to Nuada Position
     address = 0x80
@@ -139,6 +134,18 @@ if __name__ == "__main__":
     # time.sleep(5)
 
     print("demo completed\n")
+
+if __name__ == "__main__":
+    #Linux comport name -> for UART3 on the Nuada Pi4, this is ttyAMA1)
+    rc = Roboclaw("/dev/ttyAMA1", 115200)
+    print(f"port open is {rc.Open()}")
+
+    accel = 0
+    speed = 200
+    deccel = 0
+
+    if len(argv) > 1 and argv[1] == 'demo':
+        nuada_demo(accel, speed, deccel)
 
     mod_settings = True
 
