@@ -151,8 +151,10 @@ def main_interactive():
                 continue
             new_x = input("x: ")
             new_z = input("z: ")
-            # new_phi_lo = input("phi low: ")
-            # new_phi_hi = input("phi hi: ")
+            new_phi_lo = input("phi low: ")
+            new_phi_hi = input("phi hi: ")
+            #phi_lo = 270
+            #phi_hi = 280
 
             # check if input is int or float
 
@@ -167,13 +169,13 @@ def main_interactive():
                 z = float(new_z)
 
             if new_phi_lo.replace('.', '', 1).isdigit(): 
-                new_phi_lo = int(new_phi_lo)
-                if new_phi_lo >= 0 and new_phi_lo<= 360: # check its a valid angle
-                    phi_lo = int(new_phi_lo)
+                 new_phi_lo = int(new_phi_lo)
+                 if new_phi_lo >= 0 and new_phi_lo<= 360: # check its a valid angle
+                     phi_lo = int(new_phi_lo)
             if new_phi_hi.replace('.', '', 1).isdigit(): 
-                new_phi_hi = int(new_phi_hi)
-                if new_phi_hi >= 0 and new_phi_hi <= 360:
-                    phi_hi = int(new_phi_hi)
+                 new_phi_hi = int(new_phi_hi)
+                 if new_phi_hi >= 0 and new_phi_hi <= 360:
+                     phi_hi = int(new_phi_hi)
             print(f'x: {x:0.5f} z: {z:0.5f} phi range: {phi_lo} - {phi_hi}')
             if input("Search for Joint Solution? (y/n): ") == 'y':
                 sol = inverseKinematics(x, z, phi_lo=phi_lo, phi_hi=phi_hi)

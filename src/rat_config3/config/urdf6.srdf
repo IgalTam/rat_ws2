@@ -26,6 +26,11 @@
         <joint name="elbow_joint" value="0"/>
         <joint name="wrist_joint" value="0"/>
     </group_state>
+    <group_state name="up" group="rat_arm">
+        <joint name="base_joint" value="0"/>
+        <joint name="elbow_joint" value="-0.884"/>
+        <joint name="wrist_joint" value="0"/>
+    </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
     <end_effector name="claw" parent_link="Link3" group="rat_arm"/>
     <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->

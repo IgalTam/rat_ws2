@@ -4,6 +4,7 @@ from sys import exit
 from sys import argv
 from roboclaw_3 import Roboclaw
 
+
 # constants
 CLAW_FORWARDROT = 60
 CLAW_BACKWARDROT = 240
@@ -14,6 +15,7 @@ FULLROT = 360
 
 ROBOCLAW_1 = 128
 ROBOCLAW_2 = 129
+
 
 def updateMotorPos(address, accel, speed, deccel, motor):
     if motor == 1:
