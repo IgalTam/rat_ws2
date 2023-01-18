@@ -13,3 +13,25 @@ git fetch origin
 git checkout <name of branch>
 ```
 Commit and push your work for that issue onto the issue-specific branch.
+
+### Using the GitHub Project
+To better communicate task/issue allocation and progress, please include your task as an item in the Nuada GitHub Project. Task items should be formatted as follows:<br />
+
+1) Required attributes:<br />
+  a) Name (please make this sufficiently brief and descriptive)<br />
+  b) Assignee(s) (if this is your task, please assign yourself)<br />
+  c) Deadline<br />
+  d) Weekly Meeting Mention: Please list all weekly meeting dates that the task should be referenced on (this will simplify the weekly meeting leader's job of including these tasks in the meeting agenda)
+
+2) Optional attributes (but still helpful for Gantt chart organizer):<br />
+  a) Estimated time (self-explanatory)<br />
+  b) Actual time (self-explanatory; for your convenience, this field should be updated dynamically as progress is made on the task)<br />
+  c) Labels: if you want to turn the task item into a GitHub issue, please attach any relevant labels to it from the list of labels on the Nuada GitHub repository<br />
+
+The item boxes in the "Nuada Graphic" tab are designated as follows:<br />
+  - Triage: planned tasks for a future point in the project (i.e., will be assigned later on)<br />
+  - Todo: directly assigned tasks that have not had progress<br />
+  - In Progress: directly assigned tasks that do have progress<br />
+  - In Review: directly assigned tasks that have been deemed completed by their assignee and are up for being reviewed by the team<br />
+  - Done: completed and reviewed tasks<br />
+  - Deprecated: tasks that have been designated as infeasible or unnecessary to the project but have developed features that may be useful for other tasks<br />
