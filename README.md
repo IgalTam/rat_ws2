@@ -18,7 +18,7 @@ Commit and push your work for that issue onto the issue-specific branch.
 To better communicate task/issue allocation and progress, please include your task as an item in the Nuada GitHub Project. Task items should be formatted as follows:<br />
 
 1) Required attributes:<br />
-  a) Name (please make this sufficiently brief and descriptive)<br />
+  a) Task Name (please make this sufficiently brief and descriptive)<br />
   b) Assignee(s) (if this is your task, please assign yourself)<br />
   c) Deadline<br />
   d) Weekly Meeting Mention: Please list all weekly meeting dates that the task should be referenced on (this will simplify the weekly meeting leader's job of including these tasks in the meeting agenda)
