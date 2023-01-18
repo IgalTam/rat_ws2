@@ -104,11 +104,38 @@ if __name__ == "__main__":
     #checking written settings
     print(rc.ReadPinFunctions(129))
     time.sleep(2)
+
+    #check if in homed state
+    homed = ((rc.ReadError(129)[1] & 0x400000) == 0x400000)
+
+
+
     #run claw backwards to home
-    rc.BackwardM1(129, 40)
+    # rc.BackwardM1(129, 20)
+    homing_length = -460
+    rc.SpeedAccelDeccelPositionM1(129,0,80,0,homing_length,1)
+
+    jump = 10
+    temp = -jump
+    # while (temp > -240):
+    #     rc.SpeedAccelDeccelPositionM1(129,0,200,0,temp,1)
+    #     time.sleep(1)
+    #     temp -= jump
+
+    #     #check pins
+    #     err = rc.ReadError(129)
+    #     print(err)
+    #     print(n)
+    #     n += 1
+    #     #if s4 pin high, exit loop
+    #     if ((err[1] & 0x400000) == 0x400000):
+    #         break
+    #     time.sleep(0.5)
+
+
     time.sleep(2)
 
-    while(True):
+    while(homed != True):
         #rc.ResetEncoders(address)
 #         if mod_settings:
 #             address, accel, speed, deccel, motor = configSettings()
@@ -141,7 +168,7 @@ if __name__ == "__main__":
     time.sleep(1)
     #read position after homing completed
     enc_val = rc.ReadEncM1(129)
-    print(f'Encoder value after homing= {enc_val[1]}')
+    print(f'Encoder value after homing= {enc_val}')
     time.sleep(1)
     
     
@@ -149,8 +176,9 @@ if __name__ == "__main__":
     enc_1 = int(enc_val[1])
     time.sleep(1)
     #move in reverse to equivalent pos to homed 0
-    rc.SpeedAccelDeccelPositionM1(129,0,200,0,-240-enc_1,1)
-    time.sleep(1)
+    if (homed == False):
+        rc.SpeedAccelDeccelPositionM1(129,0,100,0,-230-enc_1,1)
+        time.sleep(1)
     
 
 
@@ -159,11 +187,12 @@ if __name__ == "__main__":
     
     #claw open/close variable
     grab_pos = 0
+
     
 
     while (True):
         time.sleep(2)
-#         print(f'Encoder pos before change = {rc.ReadEncM1(129)[1]}')
+        # print(f'Encoder pos before change = {rc.ReadEncM1(129)[1]}')
         print(f'claw rotation before change: {rot_pos}')
         print(f'claw grab position before change: {grab_pos}')
         rc.ResetEncoders(129)
@@ -180,8 +209,8 @@ if __name__ == "__main__":
 
         if (new_enc <= 0):
             rot_pos += new_enc
-            while (rot_pos < -240):
-                rot_pos += 240
+            while (rot_pos < -230):
+                rot_pos += 230
             print(f'current claw rotation: {rot_pos}')
             
         elif (new_enc > 0):
