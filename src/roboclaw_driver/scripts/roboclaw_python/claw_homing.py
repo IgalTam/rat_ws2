@@ -81,6 +81,7 @@ def configSettings():
 
     return address, accel, speed, deccel, motor
 
+
 if __name__ == "__main__":
     #Linux comport name -> for UART3 on the Nuada Pi4, this is ttyAMA1)
     rc = Roboclaw("/dev/ttyAMA1", 115200)
@@ -90,6 +91,7 @@ if __name__ == "__main__":
     accel = 0
     speed = 200
     deccel = 0
+    address = 129
     mod_settings = True
     
     # To ensure s4 settings are correct, they are manually 
@@ -97,11 +99,11 @@ if __name__ == "__main__":
     n=0
 
     # setting s4 to default: off
-    rc.SetPinFunctions(129, 0, 0, 0)
+    rc.SetPinFunctions(address, 0, 0, 0)
     time.sleep(1)
 
     # setting s4 to setting motor home (user)
-    rc.SetPinFunctions(129, 0, 0x62, 0)
+    rc.SetPinFunctions(address, 0, 0x62, 0)
     print("s4 set to 0x62")
     time.sleep(2)
 
@@ -115,7 +117,7 @@ if __name__ == "__main__":
     homed = ((rc.ReadError(129)[1] & 0x400000) == 0x400000)
 
     homing_length = -460
-    rc.SpeedAccelDeccelPositionM1(129,0,80,0,homing_length,1)
+    rc.SpeedAccelDeccelPositionM1(address,0,80,0,homing_length,1)
     time.sleep(2)
 
     # This while loop carries out the homing procedure for the claw. The claw 
