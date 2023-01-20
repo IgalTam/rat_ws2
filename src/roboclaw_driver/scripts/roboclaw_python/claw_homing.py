@@ -89,15 +89,19 @@ if __name__ == "__main__":
 
     # read position after homing completed
     enc_val = int(rc.ReadEncM1(ROBOCLAW_2)[1])
-    print(f'Encoder value after homing = {enc_val}')
     time.sleep(1)
-
+    print(f'Encoder value after homing = {enc_val}')
+    
     # CLAW CALIBRATION 
     # Since the claw will be slighly off from the "home position"
     # We determine the correct "0/home" position for the claw
     rc.SpeedAccelDeccelPositionM1(ROBOCLAW_2,0,100,0,-230-enc_val,1)
     time.sleep(1)
 
+    enc_val = int(rc.ReadEncM1(ROBOCLAW_2)[1])
+    time.sleep(1)
+    print(f'Encoder value after calibration = {enc_val}')
+    
     print("Claw has been homed")
     
 
