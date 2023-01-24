@@ -45,13 +45,12 @@ class RoboclawNode:
         
         self.rc = Roboclaw(self.joint_comports[0], self.BAUDRATE) # comports are not gonna change for us
         self.rc.Open()
-        self.center_motors()                                                  # flagged movement
+        # self.center_motors()                                                  # flagged movement
 
     def center_motors(self):
-        for i in range(self.num_joints):
+        for i in range(self.num_joints-1): # dont center claw
             address = int(self.joint_addresses[i]) # default: 0x80 or 128
             channel = int(self.joint_channels[i])
-            rospy.loginfo(f'centering motor: addr {address} chnl {channel}')
             cnts_per_rev = int(self.joint_cnts_per_rev[i])
             if i == 2: # need to set the wrist to 90 degrees
                 cnts_per_rev += cnts_per_rev//4
@@ -70,13 +69,42 @@ class RoboclawNode:
         return True
 
     def callback(self, data):
+        if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+            print("Actuating Claw...")
+            address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
+            self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
+            time.sleep(1)
+            self.rc.SetEncM1(address, 0) # reset this encoder
+            return
+        # upon getting a msg, check if previous msg is the same
+        if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
+            self.same_msg_cnt += 1
+        else:
+           # print("new message")
+            self.same_msg_cnt = 0
+            self.old_data = data
+            return
+
+        if self.same_msg_cnt > 3: # data has stabilized write it
+            self.same_msg_cnt = 0
+           # print("data stabilized")
+            
+        else:
+           # print("same data recieved")
+            return
+        if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
+            return
+        print("writing")
+        
+
+
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
         # init message to publish for hardware interface telem_callback
         telem_msg = ratTelemetry()
         # if input("Send commands to RoboClaws? (Yes/no): ") != "Yes":
         #     rospy.loginfo(rospy.get_caller_id() + "ignoring last message")
         #     return
-        for i in range(0, self.num_joints):
+        for i in range(0, self.num_joints-1):
             # fetch data from config file
             address = int(self.joint_addresses[i]) # default: 0x80 or 128
             channel = int(self.joint_channels[i])
@@ -84,36 +112,43 @@ class RoboclawNode:
 
             # fetch data from armCmd.msg
             rads = data.position_rads[i]
-            speed = data.speed[i]
+            speed = data.speed[i] # not used
             # accel = data.accel_deccel[i]
+
+            if i == 1: # add elbow offset
+                rads -= 0.0175 # ~1 degrees
+
 
             # Linux comport name
             #rc.Open()
-            
             flip_direction = int(self.joint_direction[i])
             buf = 1
             accel1 = 0
-            if i == 0:
-                speed1 = 300
-                speed2 = 300
-            else:
-                speed1 = 150
-                speed2 = 150
+            if i == 0: # base
+                speed1 = 370
+                speed2 = 370
+            elif i == 1: # elbow
+                speed1 = 115
+                speed2 = 115
+            else: # wrist
+                speed1 = 90
+                speed2 = 90
             deccel1 = 0
             cnts1 = 0
             accel2 = 0
+            #speed2 = 100
             deccel2 = 0
             cnts2 = 0
 
 ## Doing this seperate based on the channels seems kind of dumb, but roboclaw lib
 ### uses different funcs for m1 and m2, there is a func for both m1 and m2 at the same time
 ### so that could replace this later
-
+            print(self.rc.ReadEncM2(128))
             if channel == 1:
                 # get current encoder val
                 cur_enc_val = self.rc.ReadEncM1(address)[1] # ReadEnc returns (success_code, enc_val, address)
                 cur_angle = ((cur_enc_val-cnts_per_rev)/cnts_per_rev) * 2 * pi
-                rospy.loginfo(f'Roboclaw {address} Motor {i} {cur_enc_val}')
+                rospy.loginfo(f'Motor {i} {cur_enc_val}')
                 # populate telemetry message
                 telem_msg.angle[i] = cur_angle
                 # if isclose(cur_angle, rads, rel_tol=self.FLOAT_EPSILON):
@@ -121,33 +156,35 @@ class RoboclawNode:
                 # calculate encoder counts to write to motor
                 cnts1 = self.rads_to_enc_cnts(cnts_per_rev, rads)
                 if flip_direction:
-                        print(f'precnts1:{cnts1}')
+                        #print(f'precnts1:{cnts1}')
                         cnts1 = (2*cnts_per_rev) - cnts1
-                        print(f'postcnts1:{cnts1}')
+                        #print(f'postcnts1:{cnts1}')
                 if cnts1 == cur_enc_val:
                     rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
-                self.rc.SpeedAccelDeccelPositionM1(address,accel1,speed1,deccel1,cnts1,buf) # flagged movement
-                rospy.loginfo(f'Writing cnts1 {cnts1}')
+                # self.rc.SpeedAccelDeccelPositionM1(address,accel1,speed1,deccel1,cnts1,buf)   # flagged movement
+                rospy.loginfo(f'Writing {cnts1}')
+
             elif channel == 2:
                 # get current encoder val
+                print(self.rc.ReadEncM2(address))
                 cur_enc_val = self.rc.ReadEncM2(address)[1]
                 cur_angle = ((cur_enc_val-cnts_per_rev)/cnts_per_rev) * 2 * pi
-                rospy.loginfo(f'Roboclaw {address} Motor {i} {cur_enc_val}')
+                rospy.loginfo(f'Motor {i} {cur_enc_val}')
                 # populate telemetry message
                 telem_msg.angle[i] = cur_angle
                 cnts2 = self.rads_to_enc_cnts(cnts_per_rev, rads)
                 if flip_direction:
-                        print(f'precnts2:{cnts2}')
+                        #print(f'precnts2:{cnts2}')
                         cnts2 = (2*cnts_per_rev) - cnts2
-                        print(f'postcnts2:{cnts2}')
+                        #print(f'postcnts2:{cnts2}')
                 # calculate encoder counts to write to motor
                 
                 if cnts2 == cur_enc_val:
                     rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
-                rospy.loginfo(f'Writing cnts2 {cnts2}')
-                # self.rc.SpeedAccelDeccelPositionM2(address,accel2,speed2,deccel2,cnts2,buf) # flagged movement
+                rospy.loginfo(f'Writing {cnts2}')
+                # self.rc.SpeedAccelDeccelPositionM2(address,accel2,speed2,deccel2,cnts2,buf)    # flagged movement
             else:
                 rospy.loginfo(rospy.get_caller_id() + "Invalid motor channel: " + channel)
                 return  
