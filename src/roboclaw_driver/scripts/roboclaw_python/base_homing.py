@@ -6,7 +6,7 @@ hallpin = 2
 
 gpio.setup(hallpin, gpio.IN)
 
-while (True)
+while (True):
     if(gpio.input(hallpin) == True):
         print("magnet detected")
     else:

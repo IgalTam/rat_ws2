@@ -139,6 +139,7 @@ if __name__ == "__main__":
     time.sleep(1)
 
     # affirm homing turned off
+    print("homing setting")
     print(rc.ReadPinFunctions(129))
     time.sleep(1)
 
@@ -170,7 +171,10 @@ if __name__ == "__main__":
         print(f'claw rotation before change: {rot_pos}')
         print(f'claw grab position before change: {grab_pos}')
         rc.ResetEncoders(129)
-        cont = input("new enc val? ")
+        cont = input("new enc val? (n to exit) ")
+        if (cont == "n"):
+            rc.ResetEncoders(129)
+            break
         enc = int(cont)
         
         time.sleep(1)
