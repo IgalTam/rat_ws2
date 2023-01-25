@@ -56,8 +56,10 @@ class RoboclawNode:
             if i == 2: # need to set the wrist to 90 degrees
                 cnts_per_rev += cnts_per_rev//4
             if channel == 1:
+                # self.rc.SetEncM1(address,0)
                 self.rc.SetEncM1(address,cnts_per_rev)
             if channel == 2:
+                # self.rc.SetEncM2(address,0)
                 self.rc.SetEncM2(address,cnts_per_rev)
 
     def float_list_cmp(self, l1, l2):
@@ -147,7 +149,7 @@ class RoboclawNode:
                     rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
                 rospy.loginfo(f'Writing cnts2 {cnts2}')
-                # self.rc.SpeedAccelDeccelPositionM2(address,accel2,speed2,deccel2,cnts2,buf) # flagged movement
+                self.rc.SpeedAccelDeccelPositionM2(address,accel2,speed2,deccel2,cnts2,buf) # flagged movement
             else:
                 rospy.loginfo(rospy.get_caller_id() + "Invalid motor channel: " + channel)
                 return  
