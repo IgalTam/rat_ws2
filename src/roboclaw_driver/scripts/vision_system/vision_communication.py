@@ -8,22 +8,23 @@ from typing import Union
 import numpy as np
 # import RPi.GPIO as GPIO
 
-#from .rover import Rover
+#from .rover import *
 
 class Vision_Communication:
 
-    def __init__(self, data_packets, x, y, z, theta, xFlag, zFlag):
+    def __init__(self, data_packets, x, y, z, theta, xFlag, angle, zFlag):
+        self.data_packets = data_packets
         self.x = x
         self.y = y
         self.z = z
         self.theta = theta
-        self.data_packets = data_packets
-        self.xFlag = xFlag;
-        self.zFlag = zFlag;
+        self.xFlag = xFlag
+        self.angle = angle
+        self.zFlag = zFlag
         
     def parse_data(self, data_packets, x, y, z, theta):
         
-        data_packets = [5, 5, 5, 5]
+        data_packets = [1, 2, 3, 4]
 
         x = data_packets[0]
         y = data_packets[1]
@@ -38,6 +39,8 @@ class Vision_Communication:
                 turn_direction = "left"
             elif x < 0:
                 turn_direction = "right"
+            
+            # turn(turn_direction, angle)
             
         else:
             xFlag = True
