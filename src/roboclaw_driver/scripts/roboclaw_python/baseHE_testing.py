@@ -14,7 +14,7 @@ HALLPIN = 2
 gpio.setup(HALLPIN, gpio.IN)
 
 while (True):
-    if(gpio.input(HALLPIN) == True):
+    if(gpio.input(HALLPIN) == False):
         print("magnet detected")
     else:
         print(" ")
