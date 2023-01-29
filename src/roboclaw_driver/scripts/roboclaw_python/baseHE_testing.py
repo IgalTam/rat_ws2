@@ -1,5 +1,6 @@
 # This file is for testing the hall effect for 
 # functionality through the ROBOCLAW using s4 and s5 pins
+# functionality through the ROBOCLAW using s4 and s5 pins
 
 #!/usr/bin/python3
 import time
