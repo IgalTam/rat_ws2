@@ -52,9 +52,12 @@ def main ():
     print("here1")
     val = 0
     # rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
+    
+    speed = 50
 
     while (homed != True):
-        val -= 20
+        # val -= 20
+        val -= 80
         rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
         time.sleep(1)
         
@@ -62,6 +65,12 @@ def main ():
         # time.sleep(1)
 
     print("Base Homed")
+
+    forward = input("move forward? ")
+    if forward == "y" or forward == "yes":
+        rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, 400, 1)
+        time.sleep(1)
+
 
 if __name__ == "__main__":
     main()
