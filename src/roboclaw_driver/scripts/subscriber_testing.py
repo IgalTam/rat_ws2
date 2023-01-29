@@ -51,15 +51,12 @@ class RoboclawNode:
         for i in range(self.num_joints):
             address = int(self.joint_addresses[i]) # default: 0x80 or 128
             channel = int(self.joint_channels[i])
-            rospy.loginfo(f'centering motor: addr {address} chnl {channel}')
             cnts_per_rev = int(self.joint_cnts_per_rev[i])
             if i == 2: # need to set the wrist to 90 degrees
                 cnts_per_rev += cnts_per_rev//4
             if channel == 1:
-                # self.rc.SetEncM1(address,0)
                 self.rc.SetEncM1(address,cnts_per_rev)
             if channel == 2:
-                # self.rc.SetEncM2(address,0)
                 self.rc.SetEncM2(address,cnts_per_rev)
 
     def float_list_cmp(self, l1, l2):
@@ -71,8 +68,13 @@ class RoboclawNode:
                 return False
         return True
 
+    # limit propositions for limbs:
+    # base:
+    # elbow: 0 rad -> pi rad
+    #
+
     def callback(self, data):
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
+        rospy.loginfo(rospy.get_caller_id() + " I heard %s", data)
         # init message to publish for hardware interface telem_callback
         telem_msg = ratTelemetry()
         # if input("Send commands to RoboClaws? (Yes/no): ") != "Yes":
