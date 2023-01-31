@@ -170,7 +170,8 @@ if __name__ == "__main__":
         # print(f'Encoder pos before change = {rc.ReadEncM1(129)[1]}')
         print(f'claw rotation before change: {rot_pos}')
         print(f'claw grab position before change: {grab_pos}')
-        rc.ResetEncoders(129)
+        # rc.ResetEncoders(129)
+        rc.SetEncM1(129, 0)
         cont = input("new enc val? (n to exit) ")
         if (cont == "n"):
             rc.ResetEncoders(129)
