@@ -111,6 +111,7 @@ def rotate_till_stopM2(rc: Roboclaw, address):
         #updating to check with new movement
         rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, (newPos - TEST_WRIST_ENC_DEG), 1)
         time.sleep(1)
+        print("Move Complete\n")
         newPos = rc.ReadEncM2(address)[1]
     
 
