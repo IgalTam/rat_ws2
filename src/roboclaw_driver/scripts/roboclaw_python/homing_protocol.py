@@ -27,14 +27,14 @@ FULLROT = 360
 
 TEST_WRIST_ADDR = 130
 TEST_WRIST_MOTOR = 2
-TEST_WRIST_ENC_DEG = 3
+TEST_WRIST_ENC_DEG = 9
 TEST_WRIST_FULLROT = 1000
 
 TEST_ELBOW_ADDR = 130
 TEST_ELBOW_MOTOR = 1
 TEST_ELBOW_FULLROT = 3250
 
-TEST_SPEED = 25
+TEST_SPEED = 80
 
 def rotate_to_deg(rc: Roboclaw, motor, address, deg):
     # rotates the motor until it reaches deg or the encoder
@@ -104,15 +104,18 @@ def rotate_till_stopM2(rc: Roboclaw, address):
     if(newPos != 0):
         # CASE: if while homing the first movement should start a 0...
         print("Should never be here...\n")
-    while(oldPos != newPos):
+    # while(oldPos != newPos):
+    while not (oldPos+2 >= newPos >= oldPos-2):
         print("Old: ", oldPos, " New: ", newPos, "\n\n")
         # Waiting for the ecoder new and old value to be the same after a movement 
         oldPos = newPos
+        print("oldPos: ", oldPos)
         #updating to check with new movement
         rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, (newPos - TEST_WRIST_ENC_DEG), 1)
-        time.sleep(1)
+        time.sleep(0.5)
         print("Move Complete\n")
         newPos = rc.ReadEncM2(address)[1]
+        print("newPos: ", newPos)
     
 
 
@@ -146,10 +149,36 @@ def main():
     print("Encoder M2 before Zero: ",  tempVal, "\n")
 
     rc.SetEncM2(TEST_WRIST_ADDR, 0)
-    rc.SpeedAccelDeccelPositionM2(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, 30, 1)
+    rc.SpeedAccelDeccelPositionM2(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, 60, 1)
 
-    tempVal = rc.ReadEncM2(TEST_WRIST_ADDR)[1]
-    print("Encoder M2 After Roll Back: ", tempVal, "\n")
+    time.sleep(1)
+
+    if (input("zero? ") == "y"):
+
+        tempVal = rc.ReadEncM2(TEST_WRIST_ADDR)[1]
+        print("Encoder M2 After Roll Back: ", tempVal, "\n")
+
+        # rc.SpeedAccelDeccelPositionM2(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, 0, 1)
+        # time.sleep(1)
+
+        # print("between\n")
+
+        rc.SpeedAccelDeccelPositionM2(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, 15, 1)
+        time.sleep(1)
+        rc.SetEncM2(TEST_WRIST_ADDR, 0)
+        print("wrist zeroed\n")
+
+
+
+    backout = input("move back out? ")
+
+    if backout == "y":
+        rc.SpeedAccelDeccelPositionM2(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, 60, 1)
+        time.sleep(1)
+
+    input("done? ")
+
+    
 
 
     
