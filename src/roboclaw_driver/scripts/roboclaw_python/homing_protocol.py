@@ -141,7 +141,7 @@ def main():
     print("Encoder M2 Before Any Movement: ",  tempVal, "\n")
 
     # Single motor(WRIST)Testing to a hard stop
-    rotate_till_stopM2(rc, TEST_ELBOW_ADDR)
+    rotate_till_stopM2(rc, TEST_WRIST_ADDR)
     tempVal = rc.ReadEncM2(TEST_WRIST_ADDR)[1]
     print("Encoder M2 before Zero: ",  tempVal, "\n")
 
