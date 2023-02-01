@@ -72,6 +72,19 @@ def main ():
         rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, 400, 1)
         time.sleep(1)
 
+    
+    backhome = input("back home? ")
+    if backhome == "y" or backhome == "yes":
+        rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, 0, 1)
+        time.sleep(1)
+
+
+    forward2 = input("move forward? ")
+    if forward2 == "y" or forward2 == "yes":
+        rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, 400, 1)
+        time.sleep(1)
+
+    test = input("done?")
 
 if __name__ == "__main__":
     main()
