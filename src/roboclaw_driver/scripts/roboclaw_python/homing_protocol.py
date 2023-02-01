@@ -105,6 +105,7 @@ def rotate_till_stopM2(rc: Roboclaw, address):
         # CASE: if while homing the first movement should start a 0...
         print("Should never be here...\n")
     while(oldPos != newPos):
+        print("Old: ", oldPos, " New: ", newPos)
         # Waiting for the ecoder new and old value to be the same after a movement 
         oldPos = newPos
         #updating to check with new movement
