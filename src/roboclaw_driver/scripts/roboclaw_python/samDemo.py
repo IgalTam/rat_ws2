@@ -21,8 +21,9 @@ ROBOCLAW_2 = 129
 # This function carries out the homing procedure for the claw. The claw 
 # will continue to rotate at a constant speed until the s4 pin is read high 
 # i.e. the Hall-effect sensor is turned on.
-def home_claw(homed):
+def home_claw(homed, rc):
 
+    n=0
     while(homed != True):
         # check pins
         err = rc.ReadError(ROBOCLAW_2)
@@ -90,12 +91,12 @@ def main ():
 
     # Rotating claw maximum two full rotations for homing
     homing_length = -460
-    rc.SpeedAccelDeccelPositionM1(ROBOCLAW_2,0,80,0,homing_length,1)
+    rc.SpeedAccelDeccelPositionM1(ROBOCLAW_2,0,100,0,homing_length,1)
     time.sleep(2)
 
     # CLAW HOMING
     # Run the function to home the claw
-    claw_homed = home_claw(homed_claw)
+    claw_homed = home_claw(homed_claw, rc)
     time.sleep(1)
 
     # turn off homing by setting s4 to default: off
@@ -118,8 +119,8 @@ def main ():
     time.sleep(1)
 
     enc_val = int(rc.ReadEncM1(ROBOCLAW_2)[1])
-    time.sleep(1)
-    print(f'Encoder value after calibration = {enc_val}')
+    time.sleep(5)
+    print(f'Encoder value after claw calibration = {enc_val}')
     
     print("Claw has been homed")
 
