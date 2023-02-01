@@ -25,6 +25,7 @@ class Vision_Communication:
         
     def parse_data(self, data_packets, x, y, z, theta):
         
+        # Example/Test Array... will use array that gets sent from I2C
         data_packets = [1, 2, 3, 4]
 
         x = data_packets[0]
