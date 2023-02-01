@@ -37,6 +37,23 @@ def home_claw(homed, rc):
 
     return 0
 
+def home_base(homed, rc)
+{
+    val = 0
+    speed 50
+
+    while (homed != True):
+        # val -= 20
+        val -= 80
+        rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
+        time.sleep(1)
+        
+        homed = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
+        # time.sleep(1)
+
+    return 0
+}
+
 def main ():
 
     #Linux comport name -> for UART3 on the Nuada Pi4, this is ttyAMA1)
@@ -74,20 +91,20 @@ def main ():
     homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
     homed_claw = ((rc.ReadError(ROBOCLAW_2)[1] & 0x400000) == 0x400000)
 
-    # home the base
-    val = 0    
-    speed = 50
+    # BASE HOMING
+    # Run the function to home the claw
+    base_homed = home_base(home_base, rc)
 
-    while (homed_base != True):
-        # val -= 20
-        val -= 80
-        rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
-        time.sleep(1)
+    # while (homed_base != True):
+    #     # val -= 20
+    #     val -= 80
+    #     rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
+    #     time.sleep(1)
         
-        homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
-        # time.sleep(1)
+    #     homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
+    #     # time.sleep(1)
 
-    print("Base Homed")
+    print("BASE HOMED!!")
 
     # Rotating claw maximum two full rotations for homing
     homing_length = -460
@@ -122,9 +139,41 @@ def main ():
     time.sleep(5)
     print(f'Encoder value after claw calibration = {enc_val}')
     
-    print("Claw has been homed")
+    print("CLAW HOMED!!")
 
-    test = input("done?")
+    clawPos = 0
+
+    while (1):
+
+        selection = input("move the base of claw or exit (type b or c or e")
+        if selection == "b":
+            forward = input("move forward? ")
+            if forward == "y" or forward == "yes":
+                rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, 400, 1)
+                time.sleep(1)
+
+            backhome = input("back home? ")
+            if backhome == "y" or backhome == "yes":
+                rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, 0, 1)
+                time.sleep(1)
+
+        if selection == "c":
+            clawStatus = input("do you want to open/close the claw, or spin 180 (type c, s")
+            if clawStatus == "c":
+                clawPos += 60
+            
+            elif clawStatus = "s"
+                clawPos -= 115
+
+            rc.SpeedAccelDeccelPositionM1(129,0,200,0,clawPos,1)
+            time.sleep(1)
+        
+        if selection == "e":
+            break
+
+        else:
+            print("type again man")
+
 
 
 if __name__ == "__main__":

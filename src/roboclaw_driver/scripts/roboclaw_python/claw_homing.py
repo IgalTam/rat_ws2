@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # doing a bitwise AND with the value desired (in this case 0x400000)
     homed = ((rc.ReadError(ROBOCLAW_2)[1] & 0x400000) == 0x400000)
 
-    # Run the claw at a constant speed for homing
+    # Rotating claw maximum two full rotations for homing
     homing_length = -460
     rc.SpeedAccelDeccelPositionM1(ROBOCLAW_2,0,80,0,homing_length,1)
     time.sleep(2)
