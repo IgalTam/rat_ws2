@@ -7,6 +7,7 @@ from typing import Union
 #import array as arr
 import numpy as np
 # import RPi.GPIO as GPIO
+import rat_control.src.scripts.move_group_interface as mgi
 
 #from .rover import *
 
@@ -66,19 +67,15 @@ class Vision_Communication:
         else:
             zFlag = True
     
-    def position_set(self, xFlag, zFlag, setFlag):
+    def position_set(self, xFlag, zFlag, y, z, theta):
         if (not xFlag) or (not zFlag):
             # Power back on vision system
             Vision_Communication.power_vision_system()
         
         else:
-            setFlag = True
+            # Send y, z, and theta into ROS
+            mgi.main_cmd(z, y, theta)
     
     def power_vision_system(self):
         # Power up vision system
         x = 5
-    
-    def vision_system_ros(self, setFlag, y, z, theta):
-        if setFlag:
-            # Send y, z, and theta into ROS
-            x = 5
