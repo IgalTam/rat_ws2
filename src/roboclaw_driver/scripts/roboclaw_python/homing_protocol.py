@@ -132,6 +132,8 @@ def adjust_past_base(rc):
 def main():
     # configure Roboclaws
     rc = Roboclaw("/dev/ttyAMA1", 115200)
+    # generate/open port
+    rc.Open()
 
     tempVal = rc.ReadEncM2(TEST_WRIST_ADDR)[1]
     print("Encoder M2 Before Any Movement: ",  tempVal, "\n")
