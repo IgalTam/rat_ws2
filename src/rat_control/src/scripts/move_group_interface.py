@@ -203,7 +203,7 @@ def main_interactive():
 def main_cmd(x=None, z=None, phi_range=None, claw=None, fk=None):
     print(f'x:{x}, z:{z}, claw:{claw}')
     # if not(x and z):
-    #     print("Must provide BOTH X and Z values!")
+    #     print("Must provide BOTH X and Z values!") (phi_low, phi_hi) phi_low < phi < phi_hi
     #     return
     print("Connecting to Moveit...")
     arm_interface = MoveGroupInterface(silent=True)
@@ -223,18 +223,11 @@ def main_cmd(x=None, z=None, phi_range=None, claw=None, fk=None):
         arm_interface.go_to_joint_goal(joint_solution_angles)
 
 
-def nuada_main_cmd(x=None, z=None, phi_range=None, claw_pos=None) -> None:
-    """function for translating coordinates from vision team into
-    a goal state for the arm"""
-    # TODO: determine method of input for coordinates
-    # currently assuming that parameters come in as separate variables
-    arm_interface = MoveGroupInterface(silent=True)
-    if claw_pos is not None:
-        arm_interface.position_claw(int(claw_pos))
-    # UNFINISHED
+def nuada_demo():
+    """demo function for DBT1"""
+    pass
     
 
-    
 if __name__ == "__main__":
     parser = ap.ArgumentParser()
     subparsers = parser.add_subparsers(dest='subcommand')

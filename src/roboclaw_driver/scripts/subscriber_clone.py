@@ -26,6 +26,32 @@ class RoboclawNode:
     writtendata = armCmd()
     writtendata.position_rads = [0, 0, 0, 1.57]
 
+    """
+    arm poses reference:
+    lowbase home     <>----O=====O
+		                   ||
+
+    highbase home	      -O=====O
+		                 | ||
+		                 | ||
+                         |
+                         V
+    
+    joint limits (testing):
+    base: 0 -- 90 degrees -> cnts_per_rev -- 5*cnts_per_rev//4
+    elbow: 0 -- 180 degrees (elbow is flipped) -> cnts_per_rev -- 3*cnts_per_rev//2
+    wrist: -90 -- 90 degrees -> 3*cnts_per_rev//4 -- 5*cnts_per_rev//4
+    """
+
+    # joint radian limits (testing)
+    BASE_MIN = 0
+    BASE_MAX = 1.57
+    ELBOW_MIN = 0
+    ELBOW_MAX = 3.14
+    WRIST_MIN = -1.57
+    WRIST_MAX = 1.57
+    JOINT_LIMIT_ARR = [(BASE_MIN, BASE_MAX), (ELBOW_MIN, ELBOW_MAX), (WRIST_MIN, WRIST_MAX)]
+
     same_msg_cnt = 0
     def rads_to_enc_cnts(self, cnts_per_rev, rads):
         """
@@ -45,7 +71,8 @@ class RoboclawNode:
         
         self.rc = Roboclaw(self.joint_comports[0], self.BAUDRATE) # comports are not gonna change for us
         self.rc.Open()
-        # self.center_motors()                                                  # flagged movement
+        self.center_motors()
+        # assume arm to now be in lowbase home position
 
     def center_motors(self):
         for i in range(self.num_joints-1): # dont center claw
@@ -53,7 +80,7 @@ class RoboclawNode:
             channel = int(self.joint_channels[i])
             cnts_per_rev = int(self.joint_cnts_per_rev[i])
             if i == 2: # need to set the wrist to 90 degrees
-                cnts_per_rev += cnts_per_rev//4
+                cnts_per_rev += cnts_per_rev//4 # will be removed upon integration with the main rover
             if channel == 1:
                 self.rc.SetEncM1(address,cnts_per_rev)
             if channel == 2:
@@ -67,8 +94,25 @@ class RoboclawNode:
             if not isclose(l1[i], l2[i]):
                 return False
         return True
+    
+    def limit_joints(self, data_arr):
+        """restricts incoming joint angles to preset limits
+        implemented for hardware safety
+        NOTE: will break the rest of the ROS operation if engaged
+        due to offsetting the actual encoders from where Moveit thinks
+        they are"""
+        for joint_idx in range(len(data_arr)):
+            # set to minimum if below minimum
+            if data_arr[joint_idx] < self.JOINT_LIMIT_ARR[joint_idx][0]:
+                data_arr[joint_idx] = self.JOINT_LIMIT_ARR[joint_idx][0]
+            # set to maximum if below maximum
+            elif data_arr[joint_idx] > self.JOINT_LIMIT_ARR[joint_idx][1]:
+                data_arr[joint_idx] = self.JOINT_LIMIT_ARR[joint_idx][1]
+            print(f'motor {joint_idx} limited to {data_arr[joint_idx]}')
+        return data_arr
 
     def callback(self, data):
+        data = self.limit_joints(data) # limit position radians if necessary
         if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Actuating Claw...")
             address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
@@ -162,7 +206,7 @@ class RoboclawNode:
                 if cnts1 == cur_enc_val:
                     rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
-                # self.rc.SpeedAccelDeccelPositionM1(address,accel1,speed1,deccel1,cnts1,buf)   # flagged movement
+                self.rc.SpeedAccelDeccelPositionM1(address,accel1,speed1,deccel1,cnts1,buf)
                 rospy.loginfo(f'Writing {cnts1}')
 
             elif channel == 2:
@@ -184,7 +228,7 @@ class RoboclawNode:
                     rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
                 rospy.loginfo(f'Writing {cnts2}')
-                # self.rc.SpeedAccelDeccelPositionM2(address,accel2,speed2,deccel2,cnts2,buf)    # flagged movement
+                self.rc.SpeedAccelDeccelPositionM2(address,accel2,speed2,deccel2,cnts2,buf)
             else:
                 rospy.loginfo(rospy.get_caller_id() + "Invalid motor channel: " + channel)
                 return  
