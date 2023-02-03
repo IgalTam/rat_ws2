@@ -7,13 +7,14 @@ from typing import Union
 #import array as arr
 import numpy as np
 # import RPi.GPIO as GPIO
+from smbus2 import SMBus
 import rat_control.src.scripts.move_group_interface as mgi
 
 #from .rover import *
 
 class Vision_Communication:
 
-    def __init__(self, data_packets, x, y, z, theta, xFlag, angle, zFlag, setFlag):
+    def __init__(self, data_packets, x, y, z, theta, xFlag, angle, zFlag):
         self.data_packets = data_packets
         self.x = x
         self.y = y
@@ -22,8 +23,7 @@ class Vision_Communication:
         self.xFlag = xFlag
         self.angle = angle
         self.zFlag = zFlag
-        self.setFlag = setFlag
-        
+            
     def parse_data(self, data_packets, x, y, z, theta):
         
         # Example/Test Array... will use array that gets sent from I2C
@@ -56,10 +56,10 @@ class Vision_Communication:
 
             if z < 3:
                 # Calculate distance for going forward
-                move_distance = 3 - z;
+                move_distance = 3 - z
             elif z > 10:
                 # Calculate distance for going backward (negative)
-                move_distance = 10 - z;
+                move_distance = 10 - z
             
             # Call function to move rover forward or backward
             # move_straight(z)
