@@ -69,7 +69,7 @@ class RoboclawNode:
         return True
 
     def callback(self, data):
-        if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+        if data.position_rads[self.num_joints - 1] < 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Actuating Claw...")
             address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
             self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
@@ -77,22 +77,23 @@ class RoboclawNode:
             self.rc.SetEncM1(address, 0) # reset this encoder
             return
         # upon getting a msg, check if previous msg is the same
-        if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
-            self.same_msg_cnt += 1
-        else:
-           # print("new message")
-            self.same_msg_cnt = 0
-            self.old_data = data
-            return
+        # if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
+        #     self.same_msg_cnt += 1
+        # else:
+        #     print("new message")
+        #     self.same_msg_cnt = 0
+        #     self.old_data = data
+        #     return
 
-        if self.same_msg_cnt > 3: # data has stabilized write it
-            self.same_msg_cnt = 0
-           # print("data stabilized")
+        # if self.same_msg_cnt > 3: # data has stabilized write it
+        #     self.same_msg_cnt = 0
+        #    # print("data stabilized")
             
-        else:
-           # print("same data recieved")
-            return
+        # else:
+        #     print("same data recieved")
+        #     return
         if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
+            print('float list comp check')
             return
         print("writing")
         
