@@ -37,6 +37,8 @@ TEST_ELBOW_ADDR = 130
 TEST_ELBOW_MOTOR = 1
 TEST_ELBOW_ENC_DEG = 27
 TEST_ELBOW_FULLROT = 3250
+TEST_ELBOW_FINE = 35
+#   TODO: Needs to be confirmed....
 
 TEST_SPEED = 80
 
@@ -159,6 +161,44 @@ def test_wrist_homing(rc: Roboclaw, address):
     time.sleep(1)
     input("Testing System holding...Press any key to leave test\n")
 #   Waiting to be ready to exit testing
+
+
+def test_elbow_homing(rc: Roboclaw, address):
+    """Fuction to allow for easier testing of elbow homing"""
+#   Moved most of the code from main to here in order to be able to test homing in sectionals
+
+    currentPos = rc.ReadEncM1(TEST_WRIST_ADDR)[1]
+    print("Testing Elbow Homing on Roboclaw: ",  address, " M2\n")
+    print("Current Encoder count: ",  currentPos, "\n\n")
+#   Getting current information on elbow
+    
+    if (input("Attempt to Zero? y/n: ") == "y"):
+#       Asking user if they want to attempt basic homing
+        rotate_elbow_till_stopM1(rc, TEST_WRIST_ADDR)
+        currentPos = rc.ReadEncM1(TEST_WRIST_ADDR)[1]
+        print("\nCurrent Encoder count: ",  currentPos, "\n")
+        
+    if(input("\n\nFinetune stop? y/n: ") == "y"):
+#   Adjust the physical stop to back off the stop
+        currentPos = rc.ReadEncM1(TEST_WRIST_ADDR)[1]
+        rc.SpeedAccelDeccelPositionM1(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, (currentPos + TEST_ELBOW_FINE), 1)
+#       TODO: ensure this is the correct location to go to
+
+    print("\n\nCurrent encoder position: ",  currentPos, "\n")
+    if (input("Set current Encoder position to zero? y/n: ") == "y"):
+#       Asking user if they want to actually zero the position
+        rc.SetEncM1(TEST_WRIST_ADDR, 0)
+        print("\nCurrent encoder position: ",  currentPos)
+
+    time.sleep(1)
+    input("Testing System holding...Press any key to leave test\n")
+#   Waiting to be ready to exit testing
+
+
+
+def test_homing(rc: Roboclaw, rc1Address, rc2Address):
+    """Testing bothe the wrist and elbow at same time"""
+#   Expected demo
 
 def main():
 #   configure Roboclaws
