@@ -37,10 +37,9 @@ def home_claw(homed, rc):
 
     return 0
 
-def home_base(homed, rc)
-{
+def home_base(homed, rc):
     val = 0
-    speed 50
+    speed = 50 ; accel = 0; deccel = 0
 
     while (homed != True):
         # val -= 20
@@ -52,7 +51,7 @@ def home_base(homed, rc)
         # time.sleep(1)
 
     return 0
-}
+
 
 def main ():
 
@@ -106,8 +105,8 @@ def main ():
 
     print("BASE HOMED!!")
 
-    # Rotating claw maximum two full rotations for homing
-    homing_length = -460
+    # Rotating claw maximum 4 full rotations for homing
+    homing_length = 4 * -230
     rc.SpeedAccelDeccelPositionM1(ROBOCLAW_2,0,100,0,homing_length,1)
     time.sleep(2)
 
@@ -141,11 +140,12 @@ def main ():
     
     print("CLAW HOMED!!")
 
+    rc.SetEncM1(129, 0)
     clawPos = 0
 
     while (1):
 
-        selection = input("move the base of claw or exit (type b or c or e")
+        selection = input("move the base of claw or exit (type b or c or e)? ")
         if selection == "b":
             forward = input("move forward? ")
             if forward == "y" or forward == "yes":
@@ -157,18 +157,18 @@ def main ():
                 rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, 0, 1)
                 time.sleep(1)
 
-        if selection == "c":
-            clawStatus = input("do you want to open/close the claw, or spin 180 (type c, s")
+        elif selection == "c":
+            clawStatus = input("do you want to open/close the claw, or spin 180 (type c, s)? ")
             if clawStatus == "c":
                 clawPos += 60
             
-            elif clawStatus = "s"
+            elif clawStatus == "s":
                 clawPos -= 115
 
             rc.SpeedAccelDeccelPositionM1(129,0,200,0,clawPos,1)
             time.sleep(1)
         
-        if selection == "e":
+        elif selection == "e":
             break
 
         else:
