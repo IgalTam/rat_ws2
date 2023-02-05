@@ -94,7 +94,7 @@ class MoveGroupInterface(object):
         # rc.SetEncM1(address, 0) # reset this encoder
         # rc.SpeedAccelDeccelPositionM1(address,0,100,0,57,1)
         msg = armCmd()
-        msg.position_rads = [0, 0, 0, 1]
+        msg.position_rads = [0, 0, 1.57, 1]
         msg.speed = [0, 0, 0, 0]
         msg.accel_deccel = [0, 0, 0, 0]
         self.cmd_pub.publish(msg)

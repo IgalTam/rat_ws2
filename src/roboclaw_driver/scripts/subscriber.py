@@ -90,11 +90,11 @@ class RoboclawNode:
         #    # print("data stabilized")
             
         # else:
-        #     print("same data recieved")
+        #     # print("same data recieved")
         #     return
-        if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
-            print('float list comp check')
-            return
+        # if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
+        #     # print('float list comp check')
+        #     return
         print("writing")
         
 
