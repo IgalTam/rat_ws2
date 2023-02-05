@@ -52,9 +52,9 @@ def rotate_wrist_till_stopM2(rc: Roboclaw, address):
     newPos = rc.ReadEncM2(address)[1]
 #   newPos needs to be set to a value that will not break out of while loop right away
 
-    while not (oldPos+2 >= newPos >= oldPos-2):
+    while not (oldPos+6 >= newPos >= oldPos-6):
         print("Old: ", oldPos, " New: ", newPos, "\n")
-
+        
 #       Moves arm position at a slow rate towrds its desired physical stop
         rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, (newPos - TEST_WRIST_ENC_DEG), 1)
         time.sleep(0.5)
@@ -62,7 +62,10 @@ def rotate_wrist_till_stopM2(rc: Roboclaw, address):
 #       Updating position by setting the current position(newPos) to oldPos for next move 
         oldPos = newPos
         newPos = rc.ReadEncM2(address)[1]
+
         print("Move Complete -> newPos: ", newPos, "\n\n")
+        
+
 
 
 def rotate_elbow_till_stopM1(rc: Roboclaw, address):
