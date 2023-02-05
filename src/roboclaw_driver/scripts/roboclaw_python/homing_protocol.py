@@ -207,6 +207,7 @@ def main():
     rc.Open()
 
     test_wrist_homing(rc, TEST_WRIST_ADDR)
+    test_elbow_homing(rc, TEST_ELBOW_ADDR)
 
     
 
