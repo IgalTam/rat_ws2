@@ -42,6 +42,42 @@ TEST_ELBOW_FINE = 35
 
 TEST_SPEED = 40
 
+def turn_by_ecoder(rc: Roboclaw, address, motorNum, ecoderVal, motorSpd, printFlag):
+#   Purpose of this fuction is smplify the roboclaw movements between M1 and M2,
+#   CASE: the sleep time on this function is for short movements
+#   RETURNS: the new ecoder postion the motor is at 
+
+    if(motorNum == 1):
+#       CASE: moving M1 on addressed roboclaw
+        currentPos = rc.ReadEncM1(address)[1]
+        rc.SpeedAccelDeccelPositionM1(address, 0, motorSpd, 0, (currentPos + ecoderVal), 1)
+#       sleep to ensure the move is complete
+        time.sleep(0.5)
+        finalPos = rc.ReadEncM1(address)[1]
+    elif(motorNum == 2):
+#       CASE: moving M2 on addressed roboclaw
+        currentPos = rc.ReadEncM2(address)[1]
+        rc.SpeedAccelDeccelPositionM2(address, 0, motorSpd, 0, (currentPos + ecoderVal), 1)
+#       sleep to ensure the move is complete
+        time.sleep(0.5)
+        finalPos = rc.ReadEncM2(address)[1]
+    else:
+#       CASE: Invalid entry 
+        return -1
+    
+    if(printFlag == 1):
+#       CASE: if the print flag is set, main for debugging
+        print("Move Complete \n")
+        print("Expected Distance: ", ecoderVal)
+        print("\nActual Distance: ", abs(currentPos - finalPos), "\n\n")
+    
+    return finalPos
+
+    
+
+
+
+
 def rotate_wrist_till_stopM2(rc: Roboclaw, address):
     """OBJECTIVE: Will rotate a M2 on any roboclaw for the Wrist to move given ammount till 
     it reaches a physical stop"""
@@ -54,16 +90,12 @@ def rotate_wrist_till_stopM2(rc: Roboclaw, address):
 #   newPos needs to be set to a value that will not break out of while loop right away
 
     while not (disMoved <= 4):
-        
-        
-#       Moves arm position at a slow rate towrds its desired physical stop
-        rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, (newPos - TEST_WRIST_ENC_DEG), 1)
-        time.sleep(0.35)
-#       Updating position by setting the current position(newPos) to oldPos for next move 
+#       Moves arm position at a slow rate towrds its desired physical stop       
         oldPos = newPos
-        newPos = rc.ReadEncM2(address)[1]
+        newPos = turn_by_ecoder(rc, address, 2, TEST_WRIST_ENC_DEG, TEST_SPEED, 1)
+#       Updating position by setting the current position(newPos) to oldPos for next move 
+
         disMoved = abs(oldPos - newPos)
-        print("Ammount Moved: ", disMoved,  " Encoder Turns\n")
         
 
 
@@ -80,17 +112,13 @@ def rotate_elbow_till_stopM1(rc: Roboclaw, address):
 #   newPos needs to be set to a value that will not break out of while loop right away
 
     while not (disMoved <= 2 ):
-        print("Ammount Moved: ", disMoved,  " Encoder Turns\n")
-
-#   Moves arm position at a slow rate towrds its desired physical stop
-        rc.SpeedAccelDeccelPositionM1(address, 0, TEST_SPEED, 0, (newPos - TEST_ELBOW_ENC_DEG), 1)
+#       Moves arm position at a slow rate towrds its desired physical stop       
+        oldPos = newPos
+        newPos = turn_by_ecoder(rc, address, 1, TEST_ELBOW_ENC_DEG, TEST_SPEED, 1)
 #       TODO: Ensure Speed and amount moved is correct AND DIRECTION!!!!!  
-        time.sleep(0.5)
 
 #       Updating position by setting the current position(newPos) to oldPos for next move 
-        oldPos = newPos
-        newPos = rc.ReadEncM1(address)[1]
-        print("Move Complete -> newPos: ", newPos, "\n\n")
+
         disMoved = abs(oldPos - newPos)
     
 
@@ -201,6 +229,8 @@ def test_elbow_homing(rc: Roboclaw, address):
 
 
 
+
+
 def test_homing(rc: Roboclaw, rc1Address, rc2Address):
     """Testing bothe the wrist and elbow at same time"""
 #   Expected demo
@@ -213,12 +243,6 @@ def main():
 
     test_wrist_homing(rc, TEST_WRIST_ADDR)
 
-    
-
-    
-
-
-    
 
 if __name__ == "__main__":
     main()
