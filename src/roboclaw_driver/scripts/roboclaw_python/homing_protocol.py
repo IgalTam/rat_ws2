@@ -50,14 +50,14 @@ def turn_by_ecoder(rc: Roboclaw, address, motorNum, ecoderVal, motorSpd, printFl
     if(motorNum == 1):
 #       CASE: moving M1 on addressed roboclaw
         currentPos = rc.ReadEncM1(address)[1]
-        rc.SpeedAccelDeccelPositionM1(address, 0, motorSpd, 0, (currentPos + ecoderVal), 1)
+        rc.SpeedAccelDeccelPositionM1(address, 0, motorSpd, 0, (currentPos + ecoderVal), 0)
 #       sleep to ensure the move is complete
         time.sleep(0.5)
         finalPos = rc.ReadEncM1(address)[1]
     elif(motorNum == 2):
 #       CASE: moving M2 on addressed roboclaw
         currentPos = rc.ReadEncM2(address)[1]
-        rc.SpeedAccelDeccelPositionM2(address, 0, motorSpd, 0, (currentPos + ecoderVal), 1)
+        rc.SpeedAccelDeccelPositionM2(address, 0, motorSpd, 0, (currentPos + ecoderVal), 0)
 #       sleep to ensure the move is complete
         time.sleep(0.5)
         finalPos = rc.ReadEncM2(address)[1]
@@ -78,7 +78,7 @@ def turn_by_ecoder(rc: Roboclaw, address, motorNum, ecoderVal, motorSpd, printFl
 
 
 
-def rotate_wrist_till_stopM2(rc: Roboclaw, address):
+def rotate_wrist_till_stop(rc: Roboclaw, address):
     """OBJECTIVE: Will rotate a M2 on any roboclaw for the Wrist to move given ammount till 
     it reaches a physical stop"""
 #   This is used for nonROS homing, running under the assumption that the motor does not know
@@ -100,7 +100,7 @@ def rotate_wrist_till_stopM2(rc: Roboclaw, address):
 
 
 
-def rotate_elbow_till_stopM1(rc: Roboclaw, address):
+def rotate_elbow_till_stop(rc: Roboclaw, address):
     """OBJECTIVE: Will rotate a M1 on any roboclaw for the Elbow to move given ammount till 
     it reaches a physical stop"""
 #   This is used for nonROS homing, running under the assumption that the motor does not know
@@ -130,7 +130,7 @@ def homing_procedure(rc: Roboclaw, rc1Address, rc2Address):
 #   This is used for nonROS homing, running under the assumption that the motor does not know
 #   its position
 
-    rotate_wrist_till_stopM2(rc, rc2Address)
+    rotate_wrist_till_stop(rc, rc2Address)
 #   moving the wrist motor till it hits the mechanical stop in the vertical position
 
 #   TODO: Check if the Hall Effect sensor has been triggered yet
@@ -141,7 +141,7 @@ def homing_procedure(rc: Roboclaw, rc1Address, rc2Address):
 #       TODO: Run Base motor till it hits the base motor(could turn this to a while loop checking if
 #       Hall Effect has been triggered) 
     
-    rotate_elbow_till_stopM1(rc, rc2Address)
+    rotate_elbow_till_stop(rc, rc2Address)
 #   Moving elbow motor to bring the arm back till it reaches the mechanical stop on the base
 
 
@@ -160,35 +160,35 @@ def test_wrist_homing(rc: Roboclaw, address):
     """Fuction to allow for easier testing of wrist homing"""
 #   Moved most of the code from main to here in order to be able to test homing in sectionals
 
-    currentPos = rc.ReadEncM2(TEST_WRIST_ADDR)[1]
+    currentPos = rc.ReadEncM2(address)[1]
     print("Testing Wrist Homing on Roboclaw: ",  address, " M2\n")
     print("Current Encoder count: ",  currentPos, "\n")
 #   Getting current information on wrist
     
     if (input("Attempt to Zero? y/n: ") == "y"):
 #       Asking user if they want to attempt basic homing
-        rotate_wrist_till_stopM2(rc, TEST_WRIST_ADDR)
-        currentPos = rc.ReadEncM2(TEST_WRIST_ADDR)[1]
+        rotate_wrist_till_stop(rc, address)
+        currentPos = rc.ReadEncM2(address)[1]
         print("\nCurrent Encoder count: ",  currentPos, "\n")
         
     if(input("\n\nFinetune stop? y/n: ") == "y"):
 #   Adjust the physical stop to back off the stop
-        currentPos = rc.ReadEncM2(TEST_WRIST_ADDR)[1]
-        rc.SpeedAccelDeccelPositionM2(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, (currentPos + TEST_WRIST_FINE), 1)
+        currentPos = rc.ReadEncM2(address)[1]
+        rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, (currentPos + TEST_WRIST_FINE), 1)
 #       TODO: ensure this is the correct location to go to
 
     print("\n\nCurrent encoder position: ",  currentPos, "\n")
     if (input("Set current Encoder position to zero? y/n: ") == "y"):
 #       Asking user if they want to actually zero the position
-        rc.SetEncM2(TEST_WRIST_ADDR, 0)
+        rc.SetEncM2(address, 0)
         print("\nCurrent encoder position: ",  currentPos)
 
         if (input("\n\nAttempt to move to projected home? y/n: ") == "y"):
 #           Will attemt to move the arm to the home position
-            rc.SpeedAccelDeccelPositionM2(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, TEST_WRIST_HOME, 1)
+            rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, TEST_WRIST_HOME, 1)
 
             if (input("\n\nSet this new psoition as the zero? y/n: ") == "y"):
-                rc.SetEncM2(TEST_WRIST_ADDR, 0)
+                rc.SetEncM2(address, 0)
                 print("\nWrist Should be Homed and Zeroed\n")
 
     time.sleep(1)
@@ -200,27 +200,27 @@ def test_elbow_homing(rc: Roboclaw, address):
     """Fuction to allow for easier testing of elbow homing"""
 #   Moved most of the code from main to here in order to be able to test homing in sectionals
 
-    currentPos = rc.ReadEncM1(TEST_WRIST_ADDR)[1]
+    currentPos = rc.ReadEncM1(address)[1]
     print("Testing Elbow Homing on Roboclaw: ",  address, " M2\n")
     print("Current Encoder count: ",  currentPos, "\n\n")
 #   Getting current information on elbow
     
     if (input("Attempt to Zero? y/n: ") == "y"):
 #       Asking user if they want to attempt basic homing
-        rotate_elbow_till_stopM1(rc, TEST_WRIST_ADDR)
-        currentPos = rc.ReadEncM1(TEST_WRIST_ADDR)[1]
+        rotate_elbow_till_stop(rc, address)
+        currentPos = rc.ReadEncM1(address)[1]
         print("\nCurrent Encoder count: ",  currentPos, "\n")
         
     if(input("\n\nFinetune stop? y/n: ") == "y"):
 #   Adjust the physical stop to back off the stop
-        currentPos = rc.ReadEncM1(TEST_WRIST_ADDR)[1]
-        rc.SpeedAccelDeccelPositionM1(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, (currentPos + TEST_ELBOW_FINE), 1)
+        currentPos = rc.ReadEncM1(address)[1]
+        rc.SpeedAccelDeccelPositionM1(address, 0, TEST_SPEED, 0, (currentPos + TEST_ELBOW_FINE), 1)
 #       TODO: ensure this is the correct location to go to
 
     print("\n\nCurrent encoder position: ",  currentPos, "\n")
     if (input("Set current Encoder position to zero? y/n: ") == "y"):
 #       Asking user if they want to actually zero the position
-        rc.SetEncM1(TEST_WRIST_ADDR, 0)
+        rc.SetEncM1(address, 0)
         print("\nCurrent encoder position: ",  currentPos)
 
     time.sleep(1)
@@ -241,7 +241,15 @@ def main():
 #   generate/open port
     rc.Open()
 
-    test_wrist_homing(rc, TEST_WRIST_ADDR)
+#    test_wrist_homing(rc, TEST_WRIST_ADDR)
+
+    startLoc = rc.ReadEncM2(TEST_WRIST_ADDR)
+    rc.SpeedAccelDeccelPositionM2(TEST_WRIST_ADDR, 0, TEST_SPEED, 0, -100, 0)
+    endLoc = rc.ReadEncM2(TEST_WRIST_ADDR)
+
+    print("Start: ", startLoc, " End: ", endLoc)
+    
+
 
 
 if __name__ == "__main__":
