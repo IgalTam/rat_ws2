@@ -7,7 +7,7 @@ from typing import Union
 #import array as arr
 import numpy as np
 # import RPi.GPIO as GPIO
-from smbus2 import SMBus
+#from smbus2 import SMBus
 import rat_control.src.scripts.move_group_interface as mgi
 
 #from .rover import *
@@ -34,18 +34,20 @@ class Vision_Communication:
         z = data_packets[2]
         theta = data_packets[3]
     
-    def horizontal_view(self, x, xFlag):
+    def horizontal_view(self, x, xFlag, z):
         if x != 0:
             xFlag = False
 
             if x > 0:
-                turn_direction = "left"
+                turnDirection = "left"
             elif x < 0:
-                turn_direction = "right"
+                turnDirection = "right"
+                x= abs(x)
             
+            turnAngle = math.asin(x / z)
             # Call function to calculate angle
             # Tank Turn Function:
-            # turn(turn_direction, angle)
+            # turn(turnDirection, turnAngle)
             
         else:
             xFlag = True
