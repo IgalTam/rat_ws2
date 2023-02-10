@@ -4,10 +4,10 @@ import threading
 import sys
 
 from typing import Union
-#import array as arr
 import numpy as np
 # import RPi.GPIO as GPIO
 #from smbus2 import SMBus
+#import Rovor.src.rovor.jetson as Vision
 import rat_control.src.scripts.move_group_interface as mgi
 
 #from .rover import *
@@ -23,11 +23,28 @@ class Vision_Communication:
         self.xFlag = xFlag
         self.angle = angle
         self.zFlag = zFlag
-            
-    def parse_data(self, data_packets, x, y, z, theta):
-        
-        # Example/Test Array... will use array that gets sent from I2C
-        data_packets = [1, 2, 3, 4]
+    
+    def vision_system(self, data_packets, x, y, z, theta):
+        # Power up vision system
+        # Vision.Jetson.power_on();
+
+        # Start vision system pipeline
+        # Vision.Jetson.power_start();
+
+        # Wait 30 seconds for Vision System to Send Data
+        time.sleep(30)
+
+        # Power up vision system
+        # Vision.Jetson.get_depth_image();
+
+        # Get Data from vision system
+        # Vision.Jetson.get_object(data_packets);
+
+        # Stop vision system pipeline
+        # Vision.Jetson.power_stop();
+
+        # Power down vision system
+        # Vision.Jetson.power_off();
 
         x = data_packets[0]
         y = data_packets[1]
@@ -42,7 +59,7 @@ class Vision_Communication:
                 turnDirection = "left"
             elif x < 0:
                 turnDirection = "right"
-                x= abs(x)
+                x = abs(x)
             
             turnAngle = math.asin(x / z)
             # Call function to calculate angle
@@ -77,7 +94,3 @@ class Vision_Communication:
         else:
             # Send y, z, and theta into ROS
             mgi.main_cmd(z, y, theta)
-    
-    def power_vision_system(self):
-        # Power up vision system
-        x = 5
