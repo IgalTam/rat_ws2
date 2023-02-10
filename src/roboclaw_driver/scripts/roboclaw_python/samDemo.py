@@ -92,7 +92,7 @@ def main ():
 
     # BASE HOMING
     # Run the function to home the claw
-    base_homed = home_base(home_base, rc)
+    home_base(homed_base, rc)
 
     # while (homed_base != True):
     #     # val -= 20
@@ -106,11 +106,13 @@ def main ():
     print("BASE HOMED!!")
 
     # Rotating claw maximum 4 full rotations for homing
+    # print("homing")
     homing_length = 4 * -230
+    # rc.SpeedAccelDistanceM1(ROBOCLAW_2,0,40,homing_length,0)
     rc.SpeedAccelDeccelPositionM1(ROBOCLAW_2,0,100,0,homing_length,1)
     time.sleep(2)
+    # print("homed before 360")
 
-    # CLAW HOMING
     # Run the function to home the claw
     claw_homed = home_claw(homed_claw, rc)
     time.sleep(1)
@@ -140,7 +142,7 @@ def main ():
     
     print("CLAW HOMED!!")
 
-    rc.SetEncM1(129, 0)
+    rc.SetEncM1(ROBOCLAW_2, 0)
     clawPos = 0
 
     while (1):
