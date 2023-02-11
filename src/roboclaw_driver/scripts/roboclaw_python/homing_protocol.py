@@ -62,7 +62,8 @@ def turn_by_encoder(rc: Roboclaw, address, motorNum, ecoderVal, motorSpd, printF
         time.sleep(0.5)
         finalPos = rc.ReadEncM2(address)[1]
     else:
-#       CASE: Invalid entry 
+#       CASE: Invalid entry
+        print("Are we here? : ", motorNum)
         return -1
     
     if(printFlag == 1):
