@@ -231,16 +231,13 @@ def step_back(rc: Roboclaw):
     motorNum = 0
     encoderval = 0
     address = 0
-    print("Enter the address of the roboclaw you want to stepback?")
-    input(address)
+    input("Enter the address of the roboclaw you want to stepback?", address)
     print("Enter the motor you want to stepback? \n")
     print("1 for M1")
-    print("2 for M2")
-    input(motorNum)
-    print("How many Encoder turns? \n")
-    input(encoderval)
+    input("2 for M2\n", motorNum)
+    input("How many Encoder turns? \n", encoderval)
 
-    turn_by_encoder(rc, address, motorNum, encoderval, TEST_SPEED, 1)
+    finalPos = turn_by_encoder(rc, address, motorNum, encoderval, TEST_SPEED, 1)
     
 
 
