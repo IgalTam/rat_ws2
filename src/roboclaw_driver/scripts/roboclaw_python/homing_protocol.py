@@ -42,23 +42,30 @@ TEST_ELBOW_FINE = -50
 
 TEST_SPEED = 40
 
-def turn_by_encoder(rc: Roboclaw, address, motorNum, ecoderVal, motorSpd, printFlag):
+def turn_by_encoder(rc: Roboclaw, address, motorNum, encoderVal, motorSpd, printFlag):
 #   Purpose of this fuction is smplify the roboclaw movements between M1 and M2,
 #   CASE: the sleep time on this function is for short movements
-#   RETURNS: the new ecoder postion the motor is at 
+#   RETURNS: the new ecoder postion the motor is at
+    
+#   for larger movements it will increase to sleep time(very rough version)
+    sleepTime = 0.5
+    if(encoderVal > 100 or encoderVal < -100):
+        sleepTime = 1
+
+
     if(motorNum == 1):
 #       CASE: moving M1 on addressed roboclaw
         currentPos = rc.ReadEncM1(address)[1]
-        rc.SpeedAccelDeccelPositionM1(address, 0, motorSpd, 0, (currentPos + ecoderVal), 1)
+        rc.SpeedAccelDeccelPositionM1(address, 0, motorSpd, 0, (currentPos + encoderVal), 1)
 #       sleep to ensure the move is complete
-        time.sleep(0.5)
+        time.sleep(sleepTime)
         finalPos = rc.ReadEncM1(address)[1]
     elif(motorNum == 2):
 #       CASE: moving M2 on addressed roboclaw
         currentPos = rc.ReadEncM2(address)[1]
-        rc.SpeedAccelDeccelPositionM2(address, 0, motorSpd, 0, (currentPos + ecoderVal), 1)
+        rc.SpeedAccelDeccelPositionM2(address, 0, motorSpd, 0, (currentPos + encoderVal), 1)
 #       sleep to ensure the move is complete
-        time.sleep(0.5)
+        time.sleep(sleepTime)
         finalPos = rc.ReadEncM2(address)[1]
     else:
 #       CASE: Invalid entry
@@ -68,7 +75,7 @@ def turn_by_encoder(rc: Roboclaw, address, motorNum, ecoderVal, motorSpd, printF
     if(printFlag == 1):
 #       CASE: if the print flag is set, main for debugging
         print("Move Complete \n")
-        print("Expected Distance: ", ecoderVal)
+        print("Expected Distance: ", encoderVal)
         print("\nActual Distance: ", abs(currentPos - finalPos), "\n\n")
     
     return finalPos
@@ -244,7 +251,7 @@ def test_setup(rc: Roboclaw):
     while(input("Want to change an arm starting position? y/n\n") == "y"):
         step_back(rc)
 
-    print("SetUp complete\nMoving into normal testing\n")
+    print("SetUp complete\nMoving into normal testing\n\n")
 
 def test_homing(rc: Roboclaw, rc1Address, rc2Address):
     """Testing both the wrist and elbow at same time"""
