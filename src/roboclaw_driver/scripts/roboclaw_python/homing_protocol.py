@@ -241,7 +241,7 @@ def step_back(rc: Roboclaw):
     finalPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
     
 def test_setup(rc: Roboclaw):
-    while(input("Want to change an arm starting position? y/n\n" == y)):
+    while(input("Want to change an arm starting position? y/n\n") == y):
         step_back(rc)
 
     print("SetUp complete\nMoving into normal testing\n")
