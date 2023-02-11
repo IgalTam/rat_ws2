@@ -121,7 +121,7 @@ def rotate_elbow_till_stop(rc: Roboclaw, address):
     while not (disMoved <= 6 ):
 #       Moves arm position at a slow rate towrds its desired physical stop       
         oldPos = newPos
-        newPos = turn_by_encoder(rc, address, 1, TEST_ELBOW_ENC_DEG, TEST_SPEED, 1)
+        newPos = turn_by_encoder(rc, address, 2, TEST_ELBOW_ENC_DEG, TEST_SPEED, 1)
 #       TODO: Ensure Speed and amount moved is correct AND DIRECTION!!!!!  
 
 #       Updating position by setting the current position(newPos) to oldPos for next move 
@@ -257,8 +257,8 @@ def test_homing(rc: Roboclaw, rc1Address, rc2Address):
     """Testing both the wrist and elbow at same time"""
 #   Expected demo
 #   turn_by_encoder(rc, TEST_ELBOW_ADDR, 1, -150, TEST_SPEED, 1)
-    test_wrist_homing(rc, TEST_WRIST_ADDR)
-    test_elbow_homing(rc, TEST_ELBOW_ADDR)
+    test_wrist_homing(rc, WRIST_ADDR)
+    test_elbow_homing(rc, ELBOW_ADDR)
 
 
 
