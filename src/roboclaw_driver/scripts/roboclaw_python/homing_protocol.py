@@ -54,7 +54,6 @@ def turn_by_encoder(rc: Roboclaw, address, motorNum, ecoderVal, motorSpd, printF
         time.sleep(0.5)
         finalPos = rc.ReadEncM1(address)[1]
     elif(motorNum == 2):
-        print("here\nhere\nhere\n")
 #       CASE: moving M2 on addressed roboclaw
         currentPos = rc.ReadEncM2(address)[1]
         rc.SpeedAccelDeccelPositionM2(address, 0, motorSpd, 0, (currentPos + ecoderVal), 1)
@@ -63,7 +62,7 @@ def turn_by_encoder(rc: Roboclaw, address, motorNum, ecoderVal, motorSpd, printF
         finalPos = rc.ReadEncM2(address)[1]
     else:
 #       CASE: Invalid entry
-        print("Are we here? : ", motorNum)
+#        print("Are we here? : ", motorNum)
         return -1
     
     if(printFlag == 1):
@@ -241,7 +240,11 @@ def step_back(rc: Roboclaw):
     print("Values: ", address, " ", motorNum, " ", encoderVal, "\n")
     finalPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
     
+def test_setup(rc: Roboclaw):
+    while(input("Want to change an arm starting position? y/n\n" == y)):
+        step_back(rc)
 
+    print("SetUp complete\nMoving into normal testing\n")
 
 def test_homing(rc: Roboclaw, rc1Address, rc2Address):
     """Testing both the wrist and elbow at same time"""
@@ -250,13 +253,15 @@ def test_homing(rc: Roboclaw, rc1Address, rc2Address):
     test_wrist_homing(rc, TEST_WRIST_ADDR)
     test_elbow_homing(rc, TEST_ELBOW_ADDR)
 
+
+
 def main():
 #   configure Roboclaws
     rc = Roboclaw("/dev/ttyAMA1", 115200)
 #   generate/open port
     rc.Open()
 
-    step_back(rc)
+    test_setup(rc)
     test_homing(rc, TEST_WRIST_ADDR, TEST_ELBOW_ADDR)
  
 
