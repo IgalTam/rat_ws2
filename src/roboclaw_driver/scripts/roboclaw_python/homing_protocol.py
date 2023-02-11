@@ -229,15 +229,15 @@ def test_elbow_homing(rc: Roboclaw, address):
 
 def step_back(rc: Roboclaw):
     motorNum = 0
-    encoderval = 0
+    encoderVal = 0
     address = 0
-    input("Enter the address of the roboclaw you want to stepback?", address)
+    address = input("Enter the address of the roboclaw you want to stepback?")
     print("Enter the motor you want to stepback? \n")
     print("1 for M1")
-    input("2 for M2\n", motorNum)
-    input("How many Encoder turns? \n", encoderval)
+    motorNum = input("2 for M2\n")
+    encoderVal = input("How many Encoder turns? \n")
 
-    finalPos = turn_by_encoder(rc, address, motorNum, encoderval, TEST_SPEED, 1)
+    finalPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
     
 
 
