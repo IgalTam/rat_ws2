@@ -46,7 +46,7 @@ def turn_by_encoder(rc: Roboclaw, address, motorNum, ecoderVal, motorSpd, printF
 #   Purpose of this fuction is smplify the roboclaw movements between M1 and M2,
 #   CASE: the sleep time on this function is for short movements
 #   RETURNS: the new ecoder postion the motor is at 
-
+    print("here\nhere\nhere\n")
     if(motorNum == 1):
 #       CASE: moving M1 on addressed roboclaw
         currentPos = rc.ReadEncM1(address)[1]
@@ -231,12 +231,13 @@ def step_back(rc: Roboclaw):
     motorNum = 0
     encoderVal = 0
     address = 0
-    address = input("Enter the address of the roboclaw you want to stepback?")
+    address = input("Enter the address of the roboclaw you want to stepback?\n")
     print("Enter the motor you want to stepback? \n")
     print("1 for M1")
     motorNum = input("2 for M2\n")
     encoderVal = input("How many Encoder turns? \n")
 
+    print("Values: ", address, " ", motorNum, " ", encoderVal, "\n")
     finalPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
     
 
