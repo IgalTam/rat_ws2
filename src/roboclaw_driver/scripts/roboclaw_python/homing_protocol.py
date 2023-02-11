@@ -227,13 +227,29 @@ def test_elbow_homing(rc: Roboclaw, address):
     input("Testing System holding...Press any key to leave test\n")
 #   Waiting to be ready to exit testing
 
+def step_back(rc: Roboclaw):
+    motorNum = 0
+    encoderval = 0
+    address = 0
+    print("Enter the address of the roboclaw you want to stepback? \n")
+    input(address)
+    print("Enter the motor you want to stepback? \n")
+    print("\n1 for M1\n")
+    print("2 for M2\n")
+    input(motorNum)
+    print("How many Encoder turns? \n")
+    input(encoderval)
 
-
+    turn_by_encoder(rc, address, motorNum, encoderval, TEST_SPEED, 1)
+    
 
 
 def test_homing(rc: Roboclaw, rc1Address, rc2Address):
-    """Testing bothe the wrist and elbow at same time"""
+    """Testing both the wrist and elbow at same time"""
 #   Expected demo
+#   turn_by_encoder(rc, TEST_ELBOW_ADDR, 1, -150, TEST_SPEED, 1)
+    test_wrist_homing(rc, TEST_WRIST_ADDR)
+    test_elbow_homing(rc, TEST_ELBOW_ADDR)
 
 def main():
 #   configure Roboclaws
@@ -241,10 +257,9 @@ def main():
 #   generate/open port
     rc.Open()
 
- #   turn_by_ecoder(rc, TEST_ELBOW_ADDR, 1, -150, TEST_SPEED, 1)
-    test_wrist_homing(rc, WRIST_ADDR)
-
-    test_elbow_homing(rc, ELBOW_ADDR)
+    step_back(rc)
+    test_homing(rc, TEST_WRIST_ADDR, TEST_ELBOW_ADDR)
+ 
 
 
     
