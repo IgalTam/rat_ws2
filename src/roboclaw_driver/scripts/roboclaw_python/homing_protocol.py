@@ -50,7 +50,7 @@ def turn_by_encoder(rc: Roboclaw, address, motorNum, encoderVal, motorSpd, print
 #   for larger movements it will increase to sleep time(very rough version)
     sleepTime = 0.5
     if(encoderVal > 100 or encoderVal < -100):
-        sleepTime = 1
+        sleepTime = 0
 
 
     if(motorNum == 1):
@@ -80,9 +80,14 @@ def turn_by_encoder(rc: Roboclaw, address, motorNum, encoderVal, motorSpd, print
     
     return finalPos
 
-    
-
-
+def read_encoder(rc: Roboclaw, address, motorNum):
+#   saving time by getting rid of the m1 and m2 reads
+    encoderVal = 0
+    if(motorNum == 1):
+        encoderVal = rc.ReadEncM1(address)[1]
+    elif(motorNum == 2):
+        encoderVal = rc.ReadEncM2(address)[1]
+    return encoderVal
 
 
 def rotate_wrist_till_stop(rc: Roboclaw, address):
@@ -103,7 +108,30 @@ def rotate_wrist_till_stop(rc: Roboclaw, address):
 #       Updating position by setting the current position(newPos) to oldPos for next move 
 
         disMoved = abs(oldPos - newPos)
-        
+
+
+def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal):
+    """OBJECTIVE: Will rotate a motor with a single move to find a stop"""
+#   This is used for nonROS homing, running under the assumption that the motor does not know
+#   its position
+
+    oldPos = 10000
+    disMoved = 100
+    newPos = read_encoder(rc, address, motorNum)
+#   newPos needs to be set to a value that will not break out of while loop right away
+
+    newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 0)
+
+    while not (disMoved <= 4):
+#       Moves arm position at a slow rate towrds its desired physical stop       
+        time.sleep(0.5)
+        oldPos = newPos
+        newPos = read_encoder(rc, address, motorNum)
+        disMoved = abs(oldPos - newPos)
+
+        print("Move Complete \n")
+        print("Expected Distance: ", abs(encoderVal))
+        print("\nActual Distance: ", abs(oldPos - newPos), "\n\n")
 
 
 
