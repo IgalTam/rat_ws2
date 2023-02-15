@@ -132,6 +132,8 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal):
         print("Move Complete \n")
         print("Expected Distance: ", abs(encoderVal))
         print("\nActual Distance: ", abs(oldPos - newPos), "\n\n")
+
+    newPos = read_encoder(rc, address, motorNum)    
     newPos = turn_by_encoder(rc, address, motorNum, newPos, TEST_SPEED, 0)
 
 
