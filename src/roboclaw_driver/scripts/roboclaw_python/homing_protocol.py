@@ -297,6 +297,7 @@ def main():
     rc.Open()
 
     test_setup(rc)
+    solid_move_homing(rc, WRIST_ADDR, 2, -1000)
     test_homing(rc, TEST_WRIST_ADDR, TEST_ELBOW_ADDR)
  
 
