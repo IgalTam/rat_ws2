@@ -120,21 +120,27 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal):
     newPos = read_encoder(rc, address, motorNum)
 #   newPos needs to be set to a value that will not break out of while loop right away
 
-    newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED - 20, 0)
+    newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED - 10, 0)
+    time.sleep(0.3)
+    try:
+        while not (disMoved <= 5):
+#           Moves arm position at a slow rate towrds its desired physical stop       
+            time.sleep(0.3)
+            oldPos = newPos
+            newPos = read_encoder(rc, address, motorNum)
+            disMoved = abs(oldPos - newPos)
 
-    while not (disMoved <= 5):
-#       Moves arm position at a slow rate towrds its desired physical stop       
-        time.sleep(0.3)
-        oldPos = newPos
-        newPos = read_encoder(rc, address, motorNum)
-        disMoved = abs(oldPos - newPos)
+            print("Move Complete \n")
+            print("Expected Distance: ", abs(encoderVal))
+            print("\nActual Distance: ", abs(oldPos - newPos), "\n\n")
+    except KeyboardInterrupt:
+        print("FORCED OUT OF WHILE LOOP\n\n")
+        turn_by_encoder(rc, address, motorNum, 30, TEST_SPEED, 0)
+            
 
-        print("Move Complete \n")
-        print("Expected Distance: ", abs(encoderVal))
-        print("\nActual Distance: ", abs(oldPos - newPos), "\n\n")
 
     newPos = read_encoder(rc, address, motorNum)    
-    newPos = turn_by_encoder(rc, address, motorNum, newPos, TEST_SPEED, 0)
+    newPos = turn_by_encoder(rc, address, motorNum, 75, TEST_SPEED, 0)
 
 
 
@@ -209,11 +215,10 @@ def test_wrist_homing(rc: Roboclaw, address):
         currentPos = rc.ReadEncM2(address)[1]
         print("\nCurrent Encoder count: ",  currentPos, "\n")
         
-    if(input("\n\nFinetune stop? y/n: ") == "y"):
-#   Adjust the physical stop to back off the stop
-        currentPos = rc.ReadEncM2(address)[1]
-        rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, (currentPos + TEST_WRIST_FINE), 1)
-#       TODO: ensure this is the correct location to go to
+    
+    currentPos = rc.ReadEncM2(address)[1]
+    rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, (currentPos + TEST_WRIST_FINE), 1)
+#   TODO: ensure this is the correct location to go to
 
     print("\n\nCurrent encoder position: ",  currentPos, "\n")
     if (input("Set current Encoder position to zero? y/n: ") == "y"):
