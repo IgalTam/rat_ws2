@@ -122,9 +122,9 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal):
 
     newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 0)
 
-    while not (disMoved <= 4):
+    while not (disMoved <= 6):
 #       Moves arm position at a slow rate towrds its desired physical stop       
-        time.sleep(0.5)
+        time.sleep(0.3)
         oldPos = newPos
         newPos = read_encoder(rc, address, motorNum)
         disMoved = abs(oldPos - newPos)
