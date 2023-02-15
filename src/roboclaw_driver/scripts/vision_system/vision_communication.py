@@ -6,9 +6,9 @@ import sys
 from typing import Union
 import numpy as np
 # import RPi.GPIO as GPIO
-#from smbus2 import SMBus
-#import Rovor.src.rovor.jetson as Vision
-import rat_control.src.scripts.move_group_interface as mgi
+# from smbus2 import SMBus
+# import Rovor.src.rovor.jetson as Vision
+from rat_control.src.scripts import move_group_interface
 
 #from .rover import *
 
@@ -93,4 +93,4 @@ class Vision_Communication:
         
         else:
             # Send y, z, and theta into ROS
-            mgi.main_cmd(z, y, theta)
+            move_group_interface.main_cmd(z, y, theta)
