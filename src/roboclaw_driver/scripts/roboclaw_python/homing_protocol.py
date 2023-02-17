@@ -40,7 +40,7 @@ TEST_ELBOW_FULLROT = 3250
 TEST_ELBOW_FINE = -50
 #   TODO: Needs to be confirmed....
 
-TEST_SPEED = 30
+TEST_SPEED = 40
 
 def turn_by_encoder(rc: Roboclaw, address, motorNum, encoderVal, motorSpd, printFlag):
 #   Purpose of this fuction is smplify the roboclaw movements between M1 and M2,
@@ -121,7 +121,7 @@ def rotate_elbow_till_stop(rc: Roboclaw, address):
     newPos = rc.ReadEncM2(address)[1]
 #   newPos needs to be set to a value that will not break out of while loop right away
 
-    while not (disMoved <= 6 ):
+    while not (disMoved <= 7 ):
 #       Moves arm position at a slow rate towrds its desired physical stop       
         oldPos = newPos
         newPos = turn_by_encoder(rc, address, 2, TEST_ELBOW_ENC_DEG, TEST_SPEED, 1)
@@ -157,12 +157,18 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
             print("\nActual Distance: ", abs(oldPos - newPos), "\n\n")
     except KeyboardInterrupt:
         print("FORCED OUT OF WHILE LOOP\n\n")
-        turn_by_encoder(rc, address, motorNum, 30, TEST_SPEED, 0)
+        finetune2 = 75
+        if(address == ELBOW_ADDR):
+            finetune2 = -75
+        turn_by_encoder(rc, address, motorNum, finetune2, TEST_SPEED, 0)
             
 
 
-    newPos = read_encoder(rc, address, motorNum)    
-    newPos = turn_by_encoder(rc, address, motorNum, 75, TEST_SPEED, 0)
+    newPos = read_encoder(rc, address, motorNum) 
+    finetune = 75
+    if(address == ELBOW_ADDR):
+        finetune = -75
+    newPos = turn_by_encoder(rc, address, motorNum, finetune, TEST_SPEED, 0)
 
 
 
@@ -196,9 +202,6 @@ def homing_procedure(rc: Roboclaw, rc1Address, rc2Address):
 #   Should the encoder be reset at this point?
 
 #   Homed?
-
-
-
 
 def test_wrist_homing(rc: Roboclaw, address):
     """Fuction to allow for easier testing of wrist homing"""
@@ -305,7 +308,13 @@ def main():
     rc.Open()
 
     test_setup(rc)
-    solid_move_homing(rc, WRIST_ADDR, 2, -1000, 5)
+#    solid_move_homing(rc, WRIST_ADDR, 2, -1000, 5)
+
+    print("\n\n\n done with single move of writst\n\n\n")
+    time.sleep(1.5)
+
+#    solid_move_homing(rc, ELBOW_ADDR, 2, 2000, 5)
+
     test_homing(rc, TEST_WRIST_ADDR, TEST_ELBOW_ADDR)
  
 
