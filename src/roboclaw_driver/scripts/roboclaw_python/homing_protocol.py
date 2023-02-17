@@ -40,7 +40,7 @@ TEST_ELBOW_FULLROT = 3250
 TEST_ELBOW_FINE = -50
 #   TODO: Needs to be confirmed....
 
-TEST_SPEED = 40
+TEST_SPEED = 30
 
 def turn_by_encoder(rc: Roboclaw, address, motorNum, encoderVal, motorSpd, printFlag):
 #   Purpose of this fuction is smplify the roboclaw movements between M1 and M2,
@@ -110,6 +110,28 @@ def rotate_wrist_till_stop(rc: Roboclaw, address):
         disMoved = abs(oldPos - newPos)
 
 
+def rotate_elbow_till_stop(rc: Roboclaw, address):
+    """OBJECTIVE: Will rotate a M1 on any roboclaw for the Elbow to move given ammount till 
+    it reaches a physical stop"""
+#   This is used for nonROS homing, running under the assumption that the motor does not know
+#   its position
+
+    oldPos = 10000
+    disMoved = 100
+    newPos = rc.ReadEncM2(address)[1]
+#   newPos needs to be set to a value that will not break out of while loop right away
+
+    while not (disMoved <= 6 ):
+#       Moves arm position at a slow rate towrds its desired physical stop       
+        oldPos = newPos
+        newPos = turn_by_encoder(rc, address, 2, TEST_ELBOW_ENC_DEG, TEST_SPEED, 1)
+#       TODO: Ensure Speed and amount moved is correct AND DIRECTION!!!!!  
+
+#       Updating position by setting the current position(newPos) to oldPos for next move 
+
+        disMoved = abs(oldPos - newPos)
+    
+
 def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal):
     """OBJECTIVE: Will rotate a motor with a single move to find a stop"""
 #   This is used for nonROS homing, running under the assumption that the motor does not know
@@ -120,7 +142,7 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal):
     newPos = read_encoder(rc, address, motorNum)
 #   newPos needs to be set to a value that will not break out of while loop right away
 
-    newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED - 10, 0)
+    newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 0)
     time.sleep(0.3)
     try:
         while not (disMoved <= 5):
@@ -143,28 +165,6 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal):
     newPos = turn_by_encoder(rc, address, motorNum, 75, TEST_SPEED, 0)
 
 
-
-def rotate_elbow_till_stop(rc: Roboclaw, address):
-    """OBJECTIVE: Will rotate a M1 on any roboclaw for the Elbow to move given ammount till 
-    it reaches a physical stop"""
-#   This is used for nonROS homing, running under the assumption that the motor does not know
-#   its position
-
-    oldPos = 10000
-    disMoved = 100
-    newPos = rc.ReadEncM2(address)[1]
-#   newPos needs to be set to a value that will not break out of while loop right away
-
-    while not (disMoved <= 6 ):
-#       Moves arm position at a slow rate towrds its desired physical stop       
-        oldPos = newPos
-        newPos = turn_by_encoder(rc, address, 2, TEST_ELBOW_ENC_DEG, TEST_SPEED, 1)
-#       TODO: Ensure Speed and amount moved is correct AND DIRECTION!!!!!  
-
-#       Updating position by setting the current position(newPos) to oldPos for next move 
-
-        disMoved = abs(oldPos - newPos)
-    
 
 def homing_procedure(rc: Roboclaw, rc1Address, rc2Address):
     """OBJECTIVE: General procedure to get the arm back from any position back to the home position"""
