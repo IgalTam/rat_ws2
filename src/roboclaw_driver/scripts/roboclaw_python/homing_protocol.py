@@ -132,7 +132,7 @@ def rotate_elbow_till_stop(rc: Roboclaw, address):
         disMoved = abs(oldPos - newPos)
     
 
-def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal):
+def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
     """OBJECTIVE: Will rotate a motor with a single move to find a stop"""
 #   This is used for nonROS homing, running under the assumption that the motor does not know
 #   its position
@@ -145,7 +145,7 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal):
     newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 0)
     time.sleep(0.3)
     try:
-        while not (disMoved <= 5):
+        while not (disMoved <= breakVal):
 #           Moves arm position at a slow rate towrds its desired physical stop       
             time.sleep(0.3)
             oldPos = newPos
@@ -305,7 +305,7 @@ def main():
     rc.Open()
 
     test_setup(rc)
-    solid_move_homing(rc, WRIST_ADDR, 2, -1000)
+    solid_move_homing(rc, WRIST_ADDR, 2, -1000, 5)
     test_homing(rc, TEST_WRIST_ADDR, TEST_ELBOW_ADDR)
  
 
