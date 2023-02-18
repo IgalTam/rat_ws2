@@ -14,7 +14,7 @@ from math import pi, tau, fabs, cos
 from kinematics import inverseKinematics, forwardKinematics
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
-from roboclaw_python.roboclaw_3 import Roboclaw # for actuating claw, as rollmotor is NOT in urdf and not visible to moveit
+from roboclaw_driver.scripts.roboclaw_python.roboclaw_3 import Roboclaw # for actuating claw, as rollmotor is NOT in urdf and not visible to moveit
 
 
 
