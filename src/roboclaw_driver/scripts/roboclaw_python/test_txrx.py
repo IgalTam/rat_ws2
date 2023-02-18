@@ -2,7 +2,7 @@ import time
 from sys import exit
 from roboclaw_3 import Roboclaw
 
-ROBO_ADDRESS = 130
+ROBO_ADDRESS = 129
 
 
 # program used to test the roboclaw's read and write capabilities
@@ -18,7 +18,7 @@ print("Which motor you want to test? \n")
 print("1 for M1\n")
 print("2 for M2\n")
 val = 0
-input("Enter Motor Number: ", val)
+val = input("Enter Motor Number: ")
 if(val == 1):
     while True:
         if i == -200:
