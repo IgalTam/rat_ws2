@@ -32,9 +32,9 @@ def updateMotorPos(address, accel, speed, deccel, motor):
 
 def angleToEncoders(address, motor, angle):
     if (address == ROBOCLAW_1):
-        if (motor == 1):
+        if (motor == 2):
             return (angle * ELBOW_FULLROT) // FULLROT
-        elif (motor == 2):
+        elif (motor == 1):
             return (angle * BASE_FULLROT) // FULLROT
     elif (address == ROBOCLAW_2):
         if (motor == 1):
@@ -53,10 +53,10 @@ def configSettings():
     motor_query = input("Base (b), Elbow (e), Wrist (w), or Claw (c)? ").lower()
     if motor_query == 'b':
         address = 128
-        motor = 2
+        motor = 1
     elif motor_query == 'e':
         address = 128
-        motor = 1
+        motor = 2
     elif motor_query == 'w':
         address = 129
         motor = 2
