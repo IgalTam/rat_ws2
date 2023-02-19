@@ -195,7 +195,8 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 
 def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 #   OBJECTIVE: To have the desired homing method run till find a stop, then have a back off and test again
-    
+#   TODO: Run possible 3 checks or mind a way to prevent a second false positive from getting through
+#   TODO: Make sure the stepback wont hit something by insuring the stepback is less than the amount moved already
     trueHome = False
 
     firstStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal)
