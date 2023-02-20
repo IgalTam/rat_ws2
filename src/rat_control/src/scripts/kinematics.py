@@ -1,10 +1,10 @@
 import numpy as np
 from math import pi, tau, fabs, cos
 
-# link lengths in meters
-BASE_TO_ELBOW = 0.235 
-ELBOW_TO_WRIST = 0.2695
-WRIST_TO_EEF = 0.193
+# # link lengths in meters
+# BASE_TO_ELBOW = 0.235 
+# ELBOW_TO_WRIST = 0.2695
+# WRIST_TO_EEF = 0.193
 
 # link lengths in CENTIMETERS
 BASE_TO_ELBOW = 23.5 
