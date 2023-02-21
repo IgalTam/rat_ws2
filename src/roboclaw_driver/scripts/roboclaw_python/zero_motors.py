@@ -3,7 +3,7 @@ import time
 from roboclaw_3 import Roboclaw
 
 #Linux comport name
-rc = Roboclaw("/dev/ttyACM0", 115200)
+rc = Roboclaw("/dev/ttyAMA1", 115200)
 
 rc.Open()
 addresses = [0x80, 0x81]
