@@ -210,7 +210,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
         time.sleep(2.5)
 
         secondStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal)
-        print("HOME FOUND!!!\n\n")
+        print("HOME FOUND!!!\n\n\n\n\n\n\n\n\n")
 #       attempting to finding stop again
 
         if(abs(secondStop - firstStop) <= breakVal * 2):
@@ -328,25 +328,39 @@ def test_elbow_homing(rc: Roboclaw, address):
     time.sleep(1)
     input("Testing System holding...Press any key to leave test\n")
 #   Waiting to be ready to exit testing
-
-def step_back(rc: Roboclaw):
-    motorNum = 0
-    encoderVal = 0
-    address = 0
-    address = int(input("Enter the address of the roboclaw you want to stepback?\n"))
-    print("Enter the motor you want to stepback? \n")
-    print("1 for M1")
-    motorNum = int(input("2 for M2\n"))
-    encoderVal = int(input("How many Encoder turns? \n"))
-
-    print("Values: ", address, " ", motorNum, " ", encoderVal, "\n")
-    finalPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
     
+    
+
+
+
+
+
 def test_setup(rc: Roboclaw):
     while(input("Want to change an arm starting position? y/n\n") == "y"):
-        step_back(rc)
 
+        motorNum = 0
+        encoderVal = 0
+        address = 0
+        address = int(input("Enter the address of the roboclaw you want to stepback?\n"))
+        print("Enter the motor you want to stepback? \n")
+        print("1 for M1")
+        motorNum = int(input("2 for M2\n"))
+        encoderVal = int(input("How many Encoder turns? \n"))
+
+        print("Values: ", address, " ", motorNum, " ", encoderVal, "\n")
+        turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
+
+        while(input("Want to make another move with the same setup? y/n\n") == "y"):
+            encoderVal = int(input("How many Encoder turns? \n"))
+            print("Values: ", address, " ", motorNum, " ", encoderVal, "\n")
+            turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
+        
     print("SetUp complete\nMoving into normal testing\n\n")
+
+
+
+
+
 
 def test_homing(rc: Roboclaw, rc1Address, rc2Address):
     """Testing both the wrist and elbow at same time"""
@@ -365,8 +379,8 @@ def main():
 
     test_setup(rc)
 
-    double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 3)
-    double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 5)
+    double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
+    double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 6)
 
     test_homing(rc, TEST_WRIST_ADDR, TEST_ELBOW_ADDR)
  
