@@ -153,6 +153,7 @@ def step_till_stop(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 
         disMoved = abs(oldPos - newPos)
     
+    time.sleep(0.75)
     return read_encoder(rc, address, motorNum) 
 
 
@@ -210,7 +211,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 #       the ammount the arm will step back before attempting the homing again
         turn_by_encoder(rc, address, motorNum, stepBack, TEST_SPEED, 1)
 
-        time.sleep(2.5)
+        time.sleep(2)
 
         secondStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal)
         print("HOME FOUND!!!\n\n\n\n\n\n\n\n\n")
