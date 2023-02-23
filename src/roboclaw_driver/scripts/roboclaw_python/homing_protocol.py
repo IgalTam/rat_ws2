@@ -365,13 +365,35 @@ def home_base(homed, rc):
     val = 0
     speed = 50 ; accel = 0; deccel = 0
 
+    step = 80
+
+    prev_pos = rc.ReadEncM1(ROBOCLAW_1)[1]
+
     while (homed != True):
-        # val -= 20
-        val -= 80
+        # determine new position toward home
+        val -= step
+        # move to new position
         rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
         time.sleep(1)
         
+        #check if hall effect sensor hit
         homed = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
+
+        
+        # read in new position after move
+        cur_pos = rc.ReadEncM1(ROBOCLAW_1)
+        print(f"prev_pos: {prev_pos}, cur_pos: {cur_pos}")
+
+        if (not homed):
+            # fail-safe
+            if (abs(cur_pos - prev_pos) < (step * 0.8)):
+                # arm could be breaking / Hall effect missed
+                rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, 50, deccel, cur_pos + 500, 1)
+                print("\\Nn**********\nBASE MISSED HALL EFFECT\N**********\N")
+                time.sleep(5)
+
+        prev_pos = cur_pos
+
         # time.sleep(1)
 
     return 0
