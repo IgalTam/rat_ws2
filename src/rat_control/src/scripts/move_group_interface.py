@@ -17,6 +17,15 @@ from moveit_commander.conversions import pose_to_list
 from roboclaw_python.roboclaw_3 import Roboclaw # for actuating claw, as rollmotor is NOT in urdf and not visible to moveit
 
 
+BASE_ANGLE_LOWER_LIMIT = 0
+BASE_ANGLE_UPPER_LIMIT = -3.92699
+
+ELBOW_ANGLE_LOWER_LIMIT = 0
+ELBOW_ANGLE_UPPER_LIMIT = -3.92699
+
+WRIST_ANGLE_LOWER_LIMIT = -3.14159
+WRIST_ANGLE_UPPER_LIMIT = 0.785398
+
 
 """
 pose.position:
@@ -207,6 +216,21 @@ def main_cmd(x=None, z=None, phi_range=None, claw=None, fk=None):
         forwardKinematics(cur_joint_vals)
     else:
         joint_solution_angles, _ = inverseKinematics(x, z, phi_lo=phi_range[0], phi_hi=phi_range[1])
+        if (joint_solution_angles[1] > BASE_ANGLE_LOWER_LIMIT):
+                joint_solution_angles[1] = BASE_ANGLE_LOWER_LIMIT
+        if (joint_solution_angles[1] < BASE_ANGLE_UPPER_LIMIT):
+                joint_solution_angles[1] = BASE_ANGLE_UPPER_LIMIT
+        
+        if (joint_solution_angles[2] > ELBOW_ANGLE_LOWER_LIMIT):
+                joint_solution_angles[2] = ELBOW_ANGLE_LOWER_LIMIT
+        if (joint_solution_angles[2] < ELBOW_ANGLE_UPPER_LIMIT):
+                joint_solution_angles[2] = ELBOW_ANGLE_UPPER_LIMIT
+
+        if (joint_solution_angles[3] < WRIST_ANGLE_LOWER_LIMIT):
+                joint_solution_angles[3] = WRIST_ANGLE_LOWER_LIMIT
+        if (joint_solution_angles[3] > WRIST_ANGLE_UPPER_LIMIT):
+                joint_solution_angles[3] = WRIST_ANGLE_UPPER_LIMIT
+
         print(arm_interface.move_group.get_current_joint_values())
         if not joint_solution_angles:
             print("No solution found exiting...")
