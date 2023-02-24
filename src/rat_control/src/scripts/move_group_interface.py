@@ -100,11 +100,11 @@ class MoveGroupInterface(object):
         msg.accel_deccel = [0, 0, 0, 0]
         self.cmd_pub.publish(msg)
     
-    def position_claw(self, angle_rad: int):
+    def rotate_claw(self, angle_deg: int):
         """rotate claw motor to input angle (in degrees)
         occurs separately from base/elbow/wrist movement"""
         msg = armCmd()
-        msg.position_rads = [0, 0, 0, angle_rad]
+        msg.position_rads = [0, 0, 0, np.deg2rad(angle_deg)]
         msg.speed = [0, 0, 0, 0]
         msg.accel_deccel = [0, 0, 0, 0]
         self.cmd_pub.publish(msg)
