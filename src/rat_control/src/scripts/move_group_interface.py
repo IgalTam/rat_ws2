@@ -16,7 +16,9 @@ from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 from roboclaw_python.roboclaw_3 import Roboclaw # for actuating claw, as rollmotor is NOT in urdf and not visible to moveit
 
-
+# from moveit_msgs.msg import RobotState
+# from sensor_msgs.msg import JointState
+# from std_msgs.msg import Header
 
 """
 pose.position:
@@ -113,10 +115,13 @@ class MoveGroupInterface(object):
         self.move_group.set_joint_value_target({"base_joint": joint_angles[0],
                                                  "elbow_joint":joint_angles[1],
                                                  "wrist_joint":joint_angles[2]})
+
         ## Now, we call the planner to compute the plan and execute it.
         plan = self.move_group.go(wait=True)
+        # print(f"output of move: {plan} type: {type(plan)}")
         # Calling `stop()` ensures that there is no residual movement
         self.move_group.stop()
+        # print(f"after stop")
 
     def get_cur_pose(self):
         pos = self.move_group.get_current_pose().pose.position
@@ -256,8 +261,6 @@ if __name__ == "__main__":
         main_cmd(fk=True)
     elif args.subcommand == 'interactive':
         main_interactive()
-    elif args.subcommand == 'nuada_main':
-        nuada_main_cmd(args.x, args.z, args.phi_range, args.claw)
     elif not [x for x in vars(args).values() if x]: # check if any args were passed
         parser.print_help()
     else:
