@@ -26,6 +26,32 @@ class RoboclawNode:
     writtendata = armCmd()
     writtendata.position_rads = [0, 0, 0, 1.57]
 
+    """
+    arm poses reference:
+    lowbase home     <>----O=====O
+		                   ||
+
+    highbase home	      -O=====O
+		                 | ||
+		                 | ||
+                         |
+                         V
+    
+    joint limits (testing):
+    base: 0 -- 90 degrees -> cnts_per_rev -- 5*cnts_per_rev//4
+    elbow: 0 -- 180 degrees (elbow is flipped) -> cnts_per_rev -- 3*cnts_per_rev//2
+    wrist: -90 -- 90 degrees -> 3*cnts_per_rev//4 -- 5*cnts_per_rev//4
+    """
+
+    # joint radian limits (testing)
+    BASE_MIN = 0
+    BASE_MAX = 1.57
+    ELBOW_MIN = 0
+    ELBOW_MAX = 3.14
+    WRIST_MIN = -1.57
+    WRIST_MAX = 1.57
+    JOINT_LIMIT_ARR = [(BASE_MIN, BASE_MAX), (ELBOW_MIN, ELBOW_MAX), (WRIST_MIN, WRIST_MAX)]
+
     same_msg_cnt = 0
     def rads_to_enc_cnts(self, cnts_per_rev, rads):
         """
