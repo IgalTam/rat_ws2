@@ -26,6 +26,16 @@ class RoboclawNode:
     writtendata = armCmd()
     writtendata.position_rads = [0, 0, 0, 1.57]
 
+    # because of the way angles are sent through ROS the minimum
+    # angle value is actually the positive value
+    BASE_MIN = -3.92699
+    BASE_MAX = 0
+    ELBOW_MIN = -3.92699
+    ELBOW_MAX = 0
+    WRIST_MIN = -3.14159
+    WRIST_MAX = 0.785398
+    JOINT_LIMIT_ARR = [(BASE_MIN, BASE_MAX), (ELBOW_MIN, ELBOW_MAX), (WRIST_MIN, WRIST_MAX)]
+
     same_msg_cnt = 0
     def rads_to_enc_cnts(self, cnts_per_rev, rads):
         """
@@ -68,9 +78,36 @@ class RoboclawNode:
                 return False
         return True
 
+    def limit_joints(self, data_arr):
+        """restricts incoming joint angles to preset limits
+        implemented for hardware safety
+        NOTE: will break the rest of the ROS operation if engaged
+        due to offsetting the actual encoders from where Moveit thinks
+        they are"""
+        for joint_idx in range(len(data_arr)):
+            # set to minimum if below minimum
+            if data_arr[joint_idx] < self.JOINT_LIMIT_ARR[joint_idx][0]:
+                data_arr[joint_idx] = self.JOINT_LIMIT_ARR[joint_idx][0]
+            # set to maximum if below maximum
+            elif data_arr[joint_idx] > self.JOINT_LIMIT_ARR[joint_idx][1]:
+                data_arr[joint_idx] = self.JOINT_LIMIT_ARR[joint_idx][1]
+            print(f'motor {joint_idx} limited to {data_arr[joint_idx]}')
+        return data_arr
+
     def callback(self, data):
-        if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+        data = self.limit_joints(data.position_rads)
+
+        # if arm cmd passes negative value, actuate the claw
+        # if arm cmd passes postive value, rotate the claw
+        if data.position_rads[self.num_joints - 1] < 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Actuating Claw...")
+            address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
+            self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
+            time.sleep(1)
+            self.rc.SetEncM1(address, 0) # reset this encoder
+            return
+        elif data.position_rads[self.num_joints - 1] > 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+            print("Rotating Claw...")
             address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
             self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
             time.sleep(1)
