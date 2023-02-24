@@ -8,21 +8,19 @@ import numpy as np
 # import RPi.GPIO as GPIO
 # from smbus2 import SMBus
 # import Rovor.src.rovor.jetson as Visioncle
-from move_group_interface import *
+from move_group_interface import MoveGroupInterface
 
 #from .rover import *
 
-class Vision_Communication:
+class VisionCommunication:
 
-    def __init__(self, data_packets, x, y, z, theta):
-        self.data_packets = data_packets
-        self.x = x
-        self.y = y
-        self.z = z
-        self.theta = theta
+    def __init__(self):
+        self.xFlag = False
+        self.zFlag = False
         self.mgi = MoveGroupInterface()
+        pass
     
-    def vision_system(self, data_packets, x, y, z, theta):
+    def vision_system(self):
         # Power up vision system
         # Vision.Jetson.power_on();
 
@@ -30,7 +28,7 @@ class Vision_Communication:
         # Vision.Jetson.power_start();
 
         # Wait 30 seconds for Vision System to Send Data
-        time.sleep(30)
+        # time.sleep(30)
 
         # Power up vision system
         # Vision.Jetson.get_depth_image();
@@ -44,7 +42,7 @@ class Vision_Communication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
-        data_packets = (0, 10, 15, 0)
+        data_packets = (0, 20, 20, 0)
 
         x = data_packets[0]
         y = data_packets[1]
@@ -54,13 +52,13 @@ class Vision_Communication:
         xFlag = False
         zFlag = False
 
-        Vision_Communication.horizontal_view(x, xFlag, z)
-        Vision_Communication.distance_view(z, zFlag)
-        Vision_Communication.position_set(xFlag, zFlag, y, z, theta)
+        self.horizontal_view(x, z)
+        self.distance_view(z)
+        self.position_set(y, z, theta)
     
-    def horizontal_view(self, x, xFlag, z):
+    def horizontal_view(self, x, z):
         if x != 0:
-            xFlag = False
+            self.xFlag = False
 
             if x > 0:
                 turnDirection = "left"
@@ -74,11 +72,11 @@ class Vision_Communication:
             # turn(turnDirection, turnAngle)
             
         else:
-            xFlag = True
+            self.xFlag = True
     
-    def distance_view(self, z, zFlag):
+    def distance_view(self, z):
         if z < 10:
-            zFlag = False
+            self.zFlag = False
 
             # Calculate distance for going forward
             move_distance = 3 - z
@@ -87,12 +85,15 @@ class Vision_Communication:
             # move_straight(z)
             
         else:
-            zFlag = True
+            self.zFlag = True
     
-    def position_set(self, xFlag, zFlag, y, z, theta):
-        if (not xFlag) or (not zFlag):
+    def power_vision_system(self):
+        pass
+    
+    def position_set(self, y, z, theta):
+        if (not self.xFlag) or (not self.zFlag):
             # Power back on vision system
-            Vision_Communication.power_vision_system()
+            self.power_vision_system()
         
         else:
             # Functionality for interfacing with ROS:
@@ -100,3 +101,12 @@ class Vision_Communication:
             self.mgi.actuate_claw()          # open/close claw
             self.mgi.rotate_claw(theta)      # rotate claw
             self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
+
+
+if __name__ == "__main__":
+    vc = VisionCommunication()
+    vc.vision_system()
+    # zflag = None
+    # vc = VisionCommunication()
+    # vc.distance_view(0, zflag)
+    # print(zflag)

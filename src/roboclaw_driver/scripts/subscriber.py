@@ -77,23 +77,23 @@ class RoboclawNode:
             self.rc.SetEncM1(address, 0) # reset this encoder
             return
         # upon getting a msg, check if previous msg is the same
-        if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
-            self.same_msg_cnt += 1
-        else:
-           # print("new message")
-            self.same_msg_cnt = 0
-            self.old_data = data
-            return
+        # if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
+        #     self.same_msg_cnt += 1
+        # else:
+        #    # print("new message")
+        #     self.same_msg_cnt = 0
+        #     self.old_data = data
+        #     return
 
-        if self.same_msg_cnt > 3: # data has stabilized write it
-            self.same_msg_cnt = 0
-           # print("data stabilized")
+        # if self.same_msg_cnt > 3: # data has stabilized write it
+        #     self.same_msg_cnt = 0
+        #    # print("data stabilized")
             
-        else:
-           # print("same data recieved")
-            return
-        if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
-            return
+        # else:
+        #    # print("same data recieved")
+        #     return
+        # if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
+        #     return
         print("writing")
         
 
