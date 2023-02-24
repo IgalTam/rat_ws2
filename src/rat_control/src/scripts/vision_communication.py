@@ -7,8 +7,8 @@ from typing import Union
 import numpy as np
 # import RPi.GPIO as GPIO
 # from smbus2 import SMBus
-# import Rovor.src.rovor.jetson as Vision
-from rat_control.src.scripts import move_group_interface
+# import Rovor.src.rovor.jetson as Visioncle
+from move_group_interface import *
 
 #from .rover import *
 
@@ -46,6 +46,8 @@ class Vision_Communication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
+        data_packets = (0, 10, 10, 0)
+
         x = data_packets[0]
         y = data_packets[1]
         z = data_packets[2]
@@ -70,15 +72,12 @@ class Vision_Communication:
             xFlag = True
     
     def distance_view(self, z, zFlag):
-        if z < 3 or z > 10:
+        if z < 3:
             zFlag = False
 
             if z < 3:
                 # Calculate distance for going forward
                 move_distance = 3 - z
-            elif z > 10:
-                # Calculate distance for going backward (negative)
-                move_distance = 10 - z
             
             # Call function to move rover forward or backward
             # move_straight(z)
@@ -93,4 +92,4 @@ class Vision_Communication:
         
         else:
             # Send y, z, and theta into ROS
-            move_group_interface.main_cmd(z, y, theta)
+            main_cmd(z, y)
