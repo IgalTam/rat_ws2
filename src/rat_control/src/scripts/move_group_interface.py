@@ -119,16 +119,16 @@ class MoveGroupInterface(object):
         # Calling `stop()` ensures that there is no residual movement
         self.move_group.stop()
     
-    def vision_to_moveit(self, y: float, z: float) -> bool:
+    def vision_to_moveit(self, z: float, y: float) -> bool:
         """takes as input y and z coordinates from vision team,
         uses inverse kinematics to calculate a joint solution, then sends
         it to moveit node"""
 
-        print(f'y:{y}, z:{z}')
+        print(f'z:{z}, y:{y}')
         print("Connecting to Moveit...")
         if self.phi_range and len(self.phi_range) == 1: # make list have two elements, that are the same
             self.phi_range.append(self.phi_range[0])
-        joint_solution_angles, _ = inverseKinematics(y, z, phi_lo=self.phi_range[0], phi_hi=self.phi_range[1])
+        joint_solution_angles, _ = inverseKinematics(z, y, phi_lo=self.phi_range[0], phi_hi=self.phi_range[1])
         print(self.move_group.get_current_joint_values())
         if not joint_solution_angles:
             print("No solution found exiting...")

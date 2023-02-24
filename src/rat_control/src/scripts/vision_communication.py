@@ -93,3 +93,8 @@ class Vision_Communication:
         else:
             # Send y, z, and theta into ROS
             main_cmd(z, y)
+            # updated functionality for interfacing with ROS:
+            # mgi = MoveGroupInterface()
+            # mgi.actuate_claw()    # open/close claw
+            # mgi.rotate_claw()     # rotate claw
+            # mgi.vision_to_moveit(z, y)    # move to coordinate location (270-315 deg. angle of approach)
