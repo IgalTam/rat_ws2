@@ -20,6 +20,7 @@ class Vision_Communication:
         self.y = y
         self.z = z
         self.theta = theta
+        self.mgi = MoveGroupInterface()
     
     def vision_system(self, data_packets, x, y, z, theta):
         # Power up vision system
@@ -95,9 +96,7 @@ class Vision_Communication:
         
         else:
             # Functionality for interfacing with ROS:
-            mgi = MoveGroupInterface()
-
             # Send y, z, and theta into ROS
-            mgi.actuate_claw()          # open/close claw
-            mgi.rotate_claw(theta)      # rotate claw
-            mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
+            self.mgi.actuate_claw()          # open/close claw
+            self.mgi.rotate_claw(theta)      # rotate claw
+            self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
