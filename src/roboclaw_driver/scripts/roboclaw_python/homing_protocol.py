@@ -197,7 +197,6 @@ def home_base_setup (rc):
 
 def home_base(homed, rc):
 
-    home_base_setup(rc)
 
     val = 0
     speed = 50 ; accel = 0; deccel = 0
@@ -218,7 +217,7 @@ def home_base(homed, rc):
 
         
         # read in new position after move
-        cur_pos = rc.ReadEncM1(ROBOCLAW_1)
+        cur_pos = rc.ReadEncM1(ROBOCLAW_1)[1]
         print(f"prev_pos: {prev_pos}, cur_pos: {cur_pos}")
 
         if (not homed):
@@ -226,7 +225,7 @@ def home_base(homed, rc):
             if (abs(cur_pos - prev_pos) < (step * 0.8)):
                 # arm could be breaking / Hall effect missed
                 rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, 50, deccel, cur_pos + 500, 1)
-                print("\\Nn**********\nBASE MISSED HALL EFFECT\N**********\N")
+                print("\n\n**********\nBASE MISSED HALL EFFECT\n**********\n")
                 time.sleep(5)
 
         prev_pos = cur_pos

@@ -106,12 +106,12 @@ def main():
     rc = Roboclaw("/dev/ttyAMA1", 115200)
 #   generate/open port
     rc.Open()
-
+    print("here\n\n")
     test_setup(rc)
-    home_base(0, rc)
-
+    home_base_setup(rc)
+    
     double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
     double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 6)
 
-if __name__ == "main":
+if __name__ == "__main__":
     main()
