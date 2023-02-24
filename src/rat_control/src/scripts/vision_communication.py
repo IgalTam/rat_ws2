@@ -14,15 +14,12 @@ from move_group_interface import *
 
 class Vision_Communication:
 
-    def __init__(self, data_packets, x, y, z, theta, xFlag, angle, zFlag):
+    def __init__(self, data_packets, x, y, z, theta):
         self.data_packets = data_packets
         self.x = x
         self.y = y
         self.z = z
         self.theta = theta
-        self.xFlag = xFlag
-        self.angle = angle
-        self.zFlag = zFlag
     
     def vision_system(self, data_packets, x, y, z, theta):
         # Power up vision system
@@ -46,12 +43,19 @@ class Vision_Communication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
-        data_packets = (0, 10, 10, 0)
+        data_packets = (0, 10, 15, 0)
 
         x = data_packets[0]
         y = data_packets[1]
         z = data_packets[2]
         theta = data_packets[3]
+
+        xFlag = False
+        zFlag = False
+
+        Vision_Communication.horizontal_view(x, xFlag, z)
+        Vision_Communication.distance_view(z, zFlag)
+        Vision_Communication.position_set(xFlag, zFlag, y, z, theta)
     
     def horizontal_view(self, x, xFlag, z):
         if x != 0:
@@ -72,14 +76,13 @@ class Vision_Communication:
             xFlag = True
     
     def distance_view(self, z, zFlag):
-        if z < 3:
+        if z < 10:
             zFlag = False
 
-            if z < 3:
-                # Calculate distance for going forward
-                move_distance = 3 - z
+            # Calculate distance for going forward
+            move_distance = 3 - z
             
-            # Call function to move rover forward or backward
+            # Call function to move rover forward
             # move_straight(z)
             
         else:
@@ -91,10 +94,10 @@ class Vision_Communication:
             Vision_Communication.power_vision_system()
         
         else:
+            # Functionality for interfacing with ROS:
+            mgi = MoveGroupInterface()
+
             # Send y, z, and theta into ROS
-            main_cmd(z, y)
-            # updated functionality for interfacing with ROS:
-            # mgi = MoveGroupInterface()
-            # mgi.actuate_claw()    # open/close claw
-            # mgi.rotate_claw()     # rotate claw
-            # mgi.vision_to_moveit(z, y)    # move to coordinate location (270-315 deg. angle of approach)
+            mgi.actuate_claw()          # open/close claw
+            mgi.rotate_claw(theta)      # rotate claw
+            mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
