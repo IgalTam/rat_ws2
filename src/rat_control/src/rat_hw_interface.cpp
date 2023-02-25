@@ -54,6 +54,11 @@ void RatHWInterface::read(ros::Duration& elapsed_time)
 {
   // No need to read since the roboclaw driver node updates "/roboclaw_telemetry" 
   // and we have a subscriber to that
+
+  // adding in "/roboclaw_telemetry" read to indicate completion of move to Moveit
+  // the actual read value is unimportant
+  ros::topic::waitForMessage("/roboclaw_telemetry");
+
   ros::spinOnce(); // this spin will trigger ros to check all callbacks and update state vecs
 }
 
