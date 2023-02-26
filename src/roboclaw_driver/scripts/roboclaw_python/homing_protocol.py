@@ -222,7 +222,7 @@ def home_base(homed, rc):
 
         if (not homed):
             # fail-safe
-            if (abs(cur_pos - prev_pos) < (step * 0.8)):
+            if (abs(cur_pos - prev_pos) < (step * 0.6)):
                 # arm could be breaking / Hall effect missed
                 rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, 50, deccel, cur_pos + 500, 1)
                 print("\n\n**********\nBASE MISSED HALL EFFECT\n**********\n")
