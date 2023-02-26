@@ -160,7 +160,7 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 
 
 
-def home_base_setup (rc):
+def home_base_claw_setup(rc):
 
     # To ensure s4 settings are correct, they are manually 
     # configured in code below
@@ -185,24 +185,20 @@ def home_base_setup (rc):
     # (using ReadError function from roboclaw library) and then
     # doing a bitwise AND with the value desired (in this case 0x400000)
     homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
+    homed_claw = ((rc.ReadError(ROBOCLAW_2)[1] & 0x400000) == 0x400000)
 
     home_base(homed_base, rc)
-
     print("BASE HOMED!!")
+
+    home_claw(home_claw, rc)
+    print("CLAW HOMED")
 
     return 0
 
-
-
-
 def home_base(homed, rc):
-
-
     val = 0
     speed = 50 ; accel = 0; deccel = 0
-
     step = 80
-
     prev_pos = rc.ReadEncM1(ROBOCLAW_1)[1]
 
     while (homed != True):
@@ -235,6 +231,17 @@ def home_base(homed, rc):
     return 0
 
 
+def home_claw(homed, rc):
+
+    while(homed != True):
+        # check pins
+        err = rc.ReadError(ROBOCLAW_2)
+        # if s4 pin high, exit loop
+        if ((err[1] & 0x400000) == 0x400000):
+            break
+        time.sleep(1)
+
+    return 0
 
 
 def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
@@ -276,26 +283,26 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 
 
 
-
-
-
-
-
-
+# anirudh and trenten claw protocol for testing main
 def main():
-#   configure Roboclaws
+    #   configure Roboclaws
     rc = Roboclaw("/dev/ttyAMA1", 115200)
 #   generate/open port
     rc.Open()
-
-
-
-
- 
-
-
+    # print("here\n\n")
+    test_setup(rc)
+    home_base_claw_setup(rc)
     
+    double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
+    double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 6)
 
+
+# sebastian homing protocol main
+# def main():
+# #   configure Roboclaws
+#     rc = Roboclaw("/dev/ttyAMA1", 115200)
+# #   generate/open port
+#     rc.Open()
 
 
 if __name__ == "__main__":
