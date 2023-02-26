@@ -243,31 +243,36 @@ def home_claw_setup_run(rc):
 def home_base(homed, rc):
     val = 0
     speed = 50 ; accel = 0; deccel = 0
-    step = 80
+    step = 100
     prev_pos = rc.ReadEncM1(ROBOCLAW_1)[1]
 
     while (homed != True):
         # determine new position toward home
         val -= step
+        print(val)
         # move to new position
         rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
-        time.sleep(1)
-        
-        #check if hall effect sensor hit
-        homed = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
-
+        time.sleep(3)
         
         # read in new position after move
         cur_pos = rc.ReadEncM1(ROBOCLAW_1)[1]
         print(f"prev_pos: {prev_pos}, cur_pos: {cur_pos}")
+        
+        #check if hall effect sensor hit
+        homed = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
 
-        if (not homed):
+        if homed:
+            break
+        else:
+            # Home not hit and read yet
             # fail-safe
-            if (abs(cur_pos - prev_pos) < (step * 0.6)):
+            if (abs(cur_pos - prev_pos) < (step * 0.9)):
                 # arm could be breaking / Hall effect missed
                 rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, 50, deccel, cur_pos + 500, 1)
+                val = cur_pos + 500
                 print("\n\n**********\nBASE MISSED HALL EFFECT\n**********\n")
-                time.sleep(5)
+                time.sleep(10)
+
 
         prev_pos = cur_pos
 
@@ -335,12 +340,12 @@ def main():
 #   generate/open port
     rc.Open()
     # print("here\n\n")
-    test_setup(rc)
+    # test_setup(rc)
     home_base_setup_run(rc)
-    home_claw_setup_run(rc)
+    # home_claw_setup_run(rc)
 
-    double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
-    double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 6)
+    # double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
+    # double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 6)
 
 
 # sebastian homing protocol main
