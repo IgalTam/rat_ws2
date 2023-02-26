@@ -160,7 +160,7 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 
 
 
-def home_base_claw_setup(rc):
+def home_base_setup_run(rc):
 
     # To ensure s4 settings are correct, they are manually 
     # configured in code below
@@ -169,13 +169,48 @@ def home_base_claw_setup(rc):
     # setting s4 to default: off
     rc.SetPinFunctions(ROBOCLAW_1, 0, 0, 0)
     time.sleep(1)
-    rc.SetPinFunctions(ROBOCLAW_2, 0, 0, 0)
-    time.sleep(1)
+    # rc.SetPinFunctions(ROBOCLAW_2, 0, 0, 0)
+    # time.sleep(1)
 
     # setting s4 to setting motor home (user)
     rc.SetPinFunctions(ROBOCLAW_1, 0, 0x62, 0)
     print("s4 set to 0x62 for ROBOCLAW 1")
     time.sleep(1)
+
+    # rc.SetPinFunctions(ROBOCLAW_2, 0, 0x62, 0)
+    # print("s4 set to 0x62 for ROBOCLAW 2")
+    # time.sleep(2)
+
+    # check if in homed state by reading status of all pins 
+    # (using ReadError function from roboclaw library) and then
+    # doing a bitwise AND with the value desired (in this case 0x400000)
+    homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
+    # homed_claw = ((rc.ReadError(ROBOCLAW_2)[1] & 0x400000) == 0x400000)
+
+    home_base(homed_base, rc)
+    print("BASE HOMED!!")
+
+    # home_claw(homed_claw, rc)
+    # print("CLAW HOMED")
+
+    return 0
+
+def home_claw_setup_run(rc):
+
+    # To ensure s4 settings are correct, they are manually 
+    # configured in code below
+    n=0
+
+    # setting s4 to default: off
+    # rc.SetPinFunctions(ROBOCLAW_1, 0, 0, 0)
+    # time.sleep(1)
+    rc.SetPinFunctions(ROBOCLAW_2, 0, 0, 0)
+    time.sleep(1)
+
+    # setting s4 to setting motor home (user)
+    # rc.SetPinFunctions(ROBOCLAW_1, 0, 0x62, 0)
+    # print("s4 set to 0x62 for ROBOCLAW 1")
+    # time.sleep(1)
 
     rc.SetPinFunctions(ROBOCLAW_2, 0, 0x62, 0)
     print("s4 set to 0x62 for ROBOCLAW 2")
@@ -184,13 +219,10 @@ def home_base_claw_setup(rc):
     # check if in homed state by reading status of all pins 
     # (using ReadError function from roboclaw library) and then
     # doing a bitwise AND with the value desired (in this case 0x400000)
-    homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
+    # homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
     homed_claw = ((rc.ReadError(ROBOCLAW_2)[1] & 0x400000) == 0x400000)
 
-    home_base(homed_base, rc)
-    print("BASE HOMED!!")
-
-    home_claw(home_claw, rc)
+    home_claw(homed_claw, rc)
     print("CLAW HOMED")
 
     return 0
@@ -291,7 +323,8 @@ def main():
     rc.Open()
     # print("here\n\n")
     test_setup(rc)
-    home_base_claw_setup(rc)
+    home_base_setup_run(rc)
+    home_claw_setup_run(rc)
     
     double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
     double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 6)
