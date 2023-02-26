@@ -222,8 +222,21 @@ def home_claw_setup_run(rc):
     # homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
     homed_claw = ((rc.ReadError(ROBOCLAW_2)[1] & 0x400000) == 0x400000)
 
+    # Rotating claw maximum 4 full rotations for homing
+    # print("homing")
+    homing_length = 4 * -230
+    # rc.SpeedAccelDistanceM1(ROBOCLAW_2,0,40,homing_length,0)
+    rc.SpeedAccelDeccelPositionM1(ROBOCLAW_2,0,100,0,homing_length,1)
+    time.sleep(2)
+    # print("homed before 360")
+
     home_claw(homed_claw, rc)
     print("CLAW HOMED")
+
+    rc.SetPinFunctions(ROBOCLAW_2, 0, 0, 0)
+    time.sleep(1)
+    
+
 
     return 0
 
@@ -325,7 +338,7 @@ def main():
     test_setup(rc)
     home_base_setup_run(rc)
     home_claw_setup_run(rc)
-    
+
     double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
     double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 6)
 
