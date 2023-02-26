@@ -13,6 +13,10 @@ RatHWInterface::RatHWInterface(ros::NodeHandle& nh, urdf::Model* urdf_model)
   telemetry_sub = nh.subscribe("/roboclaw_telemetry", 1, &RatHWInterface::telemetryCallback, this);
   cmd_pub = nh.advertise<rat_control::armCmd>("/roboclaw_cmd", 1);
 
+  // unused read to resolve overload
+  // PENDING TROUBLESHOOTING
+  // ros::topic::waitForMessage<rat_control::ratTelemetry>("/roboclaw_telemetry", nh, ros::Duration(1));
+
   ROS_INFO("ratHWInterface Constructed!\n");
 
 }
@@ -57,7 +61,8 @@ void RatHWInterface::read(ros::Duration& elapsed_time)
 
   // adding in "/roboclaw_telemetry" read to indicate completion of move to Moveit
   // the actual read value is unimportant
-  ros::topic::waitForMessage("/roboclaw_telemetry");
+  // PENDING TROUBLESHOOTING
+  // ros::topic::waitForMessage<roboclaw_driver::ratTelemetry>("/roboclaw_telemetry");
 
   ros::spinOnce(); // this spin will trigger ros to check all callbacks and update state vecs
 }
