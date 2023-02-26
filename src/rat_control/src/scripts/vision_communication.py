@@ -17,6 +17,7 @@ class VisionCommunication:
     def __init__(self):
         self.xFlag = False
         self.zFlag = False
+        self.maxDistanceArm = 30
         self.mgi = MoveGroupInterface()
         pass
     
@@ -42,15 +43,13 @@ class VisionCommunication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
+        # Test
         data_packets = (0, 20, 20, 0)
 
         x = data_packets[0]
         y = data_packets[1]
         z = data_packets[2]
         theta = data_packets[3]
-
-        xFlag = False
-        zFlag = False
 
         self.horizontal_view(x, z)
         self.distance_view(z)
@@ -75,11 +74,11 @@ class VisionCommunication:
             self.xFlag = True
     
     def distance_view(self, z):
-        if z < 10:
+        if z > self.maxDistanceArm:
             self.zFlag = False
 
             # Calculate distance for going forward
-            move_distance = 3 - z
+            move_distance = ((z - self.maxDistanceArm) + self.maxDistanceArm) / 2
             
             # Call function to move rover forward
             # move_straight(z)
