@@ -38,7 +38,8 @@ class RoboclawNode:
 
     # Variable to keep track of the previous angle/encoder count for the claw
     # this variable is used in the call back function
-    prev_claw_pos_angle = 0
+    claw_pos = 0
+
 
 
     same_msg_cnt = 0
@@ -115,24 +116,23 @@ class RoboclawNode:
             print("Rotating Claw...")
             address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
             counts_per_rev = int(self.joint_cnts_per_rev[i])
-            radian_angle = data.position_rads[self.num_joints - 1]
+            radian_angle = data.position_rads[self.num_joints - 1] # radian_angle is the intended position the claw needs to rotate to
 
             # due to the mechanism of the claw, it cannot be rotated backwards -- it 
             # can only move forward. So, if the new angle passed is less than the angle that was
             # previously passed in, the claw must rotate to home position (0 radians) and then move
             # forward from home to the passed in radian_angle.
-            if (radian_angle < prev_claw_pos_angle):
-                endoder_counts = self.rads_to_enc_cnts(counts_per_rev, 6.28319 - radian_angle)
+            if (radian_angle < self.claw_pos):
+                endoder_counts = self.rads_to_enc_cnts(counts_per_rev, 6.28319 - self.claw_pos + radian_angle)
                 self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, endoder_counts, 1)
                 time.sleep(1)
-                endoder_counts = self.rads_to_enc_cnts(counts_per_rev, radian_angle)
-            else if (radian_angle >= prev_claw_pos_angle):
-                endoder_counts = self.rads_to_enc_cnts(counts_per_rev, radian_angle - prev_claw_pos_angle)
+                self.claw_pos = radian_angle
+            elif (radian_angle >= self.claw_pos):
+                endoder_counts = self.rads_to_enc_cnts(counts_per_rev, radian_angle - self.claw_pos)
+                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, endoder_counts, 1)
+                time.sleep(1)
+                self.claw_pos = radian_angle
 
-            # endoder_counts = self.rads_to_enc_cnts(counts_per_rev, radian_angle)
-            self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, endoder_counts, 1)
-            time.sleep(1)
-            self.prev_claw_pos_angle = radian_angle  # keep track of the previous radian angle 
             self.rc.SetEncM1(address, 0) # reset this encoder
             return
 
