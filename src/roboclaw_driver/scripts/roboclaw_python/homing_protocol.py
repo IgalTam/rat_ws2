@@ -327,6 +327,37 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 
 
 
+def multi_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
+#   OBJECTIVE: To have the desired homing method run till find a stop, then have a back off and test again multiple times to ensure its working
+#   TODO: Run possible 3 checks or mind a way to prevent a second false positive from getting through
+#   TODO: Make sure the stepback wont hit something by insuring the stepback is less than the amount moved already
+    trueHome = False
+    recordedHomes = list[5]
+
+    firstStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal)
+#   First attempt at homing
+    secondStop = 0
+    while not (trueHome):
+        stepBack = (-1 * encoderVal * 5)
+#       the ammount the arm will step back before attempting the homing again
+        turn_by_encoder(rc, address, motorNum, stepBack, TEST_SPEED, 1)
+
+        time.sleep(2)
+
+        secondStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal)
+        print("HOME FOUND!!!\n\n\n\n\n\n\n\n\n")
+#       attempting to finding stop again
+
+        if(abs(secondStop - firstStop) <= breakVal * 2):
+#           CASE: found that the new position is similar to the last one
+            trueHome = True
+        else:
+#           CASE: there is some discreptency between the two values
+            firstStop = secondStop
+    
+#   Step back after finding home
+    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 2), TEST_SPEED, 1)
+
 
 
 
