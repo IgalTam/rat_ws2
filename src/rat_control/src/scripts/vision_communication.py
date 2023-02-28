@@ -46,15 +46,17 @@ class VisionCommunication:
         # Test
         data_packets = (0, 20, 20, 0)
 
-        x = data_packets[0]
-        y = data_packets[1]
-        z = data_packets[2]
-        theta = data_packets[3]
+        x: float = data_packets[0]
+        y: float = data_packets[1]
+        z: float = data_packets[2]
+        theta: int = data_packets[3]
+
+        print(f"Data:\n {x}, {y}, {z}, {theta}")
 
         self.horizontal_view(x, z)
         self.distance_view(z)
         self.position_set(y, z, theta)
-    
+
     def horizontal_view(self, x, z):
         if x != 0:
             self.xFlag = False
@@ -86,13 +88,10 @@ class VisionCommunication:
         else:
             self.zFlag = True
     
-    def power_vision_system(self):
-        pass
-    
     def position_set(self, y, z, theta):
         if (not self.xFlag) or (not self.zFlag):
             # Power back on vision system
-            self.power_vision_system()
+            self.vision_system()
         
         else:
             # Functionality for interfacing with ROS:
