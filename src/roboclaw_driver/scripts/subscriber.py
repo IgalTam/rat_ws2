@@ -107,15 +107,12 @@ class RoboclawNode:
         # if arm cmd passes postive value, rotate the claw
         if data.position_rads[self.num_joints - 1] < 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Actuating Claw...")
-            address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
             self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
             time.sleep(1)
-            self.rc.SetEncM1(address, 0) # reset this encoder
+            self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
             return
         elif data.position_rads[self.num_joints - 1] > 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Rotating Claw...")
-            address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
-            counts_per_rev = int(self.joint_cnts_per_rev[i])
             radian_angle = data.position_rads[self.num_joints - 1] # radian_angle is the intended position the claw needs to rotate to
 
             # due to the mechanism of the claw, it cannot be rotated backwards -- it 
@@ -123,17 +120,16 @@ class RoboclawNode:
             # previously passed in, the claw must rotate to home position (0 radians) and then move
             # forward from home to the passed in radian_angle.
             if (radian_angle < self.claw_pos):
-                endoder_counts = self.rads_to_enc_cnts(counts_per_rev, 6.28319 - self.claw_pos + radian_angle)
-                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, endoder_counts, 1)
+                encoder_counts = self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), 6.28319 - self.claw_pos + radian_angle)
+                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, encoder_counts, 1)
                 time.sleep(1)
                 self.claw_pos = radian_angle
             elif (radian_angle >= self.claw_pos):
-                endoder_counts = self.rads_to_enc_cnts(counts_per_rev, radian_angle - self.claw_pos)
-                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, endoder_counts, 1)
+                encoder_counts = self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), radian_angle - self.claw_pos)
+                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, encoder_counts, 1)
                 time.sleep(1)
                 self.claw_pos = radian_angle
-
-            self.rc.SetEncM1(address, 0) # reset this encoder
+            self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
             return
 
         # upon getting a msg, check if previous msg is the same
