@@ -67,6 +67,8 @@ class VisionCommunication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
+        print('start of vision system')
+
         data_packets = self.send_i2c_cmd()
 
         # Test
@@ -122,10 +124,10 @@ class VisionCommunication:
         # else:
             # Functionality for interfacing with ROS:
             # Send y, z, and theta into ROS
-        # self.mgi.actuate_claw()          # open/close claw
-        # self.mgi.rotate_claw(theta)      # rotate claw
-        # self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
-        print(f"data received at end: y {y} z {z} theta {theta}")
+        self.mgi.actuate_claw()          # open/close claw
+        self.mgi.rotate_claw(theta)      # rotate claw
+        self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
+        # print(f"data received at end: y {y} z {z} theta {theta}")
 
 
 if __name__ == "__main__":
