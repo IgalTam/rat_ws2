@@ -9,7 +9,7 @@ import numpy as np
 # from smbus2 import SMBus
 # import Rovor.src.rovor.jetson as Visioncle
 from move_group_interface import MoveGroupInterface
-from i2c_bus import main as visionI2c
+from i2c_bus import *
 
 #from .rover import *
 
@@ -22,6 +22,28 @@ class VisionCommunication:
         self.mgi = MoveGroupInterface()
         #self.i2cBus = main()
         pass
+
+    def send_i2c_cmd(self):
+        bus = I2CBus()
+
+        # test writing a command to get cordinates
+        bus.write_pkt(b'cord', 'c', 0)
+
+        # wait for response
+        while True:
+            pkt = bus.wait_response()
+            
+            if not pkt:
+                continue
+
+            if(pkt[I2CPacket.id_index].decode() != bus.pkt_targ_id) or (pkt[I2CPacket.stat_index] != b'd'):
+                continue
+
+            # print received data
+            data = pkt[I2CPacket.data_index].decode().strip('\0')
+            if data:
+                print(data)
+                return data
     
     def vision_system(self):
         # Power up vision system
@@ -45,7 +67,7 @@ class VisionCommunication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
-        data_packets = visionI2c
+        data_packets = self.send_i2c_cmd()
 
         # Test
         # data_packets = "x12y13z15a120"
@@ -93,16 +115,17 @@ class VisionCommunication:
             self.zFlag = True
     
     def position_set(self, y, z, theta):
-        if (not self.xFlag) or (not self.zFlag):
-            # Power back on vision system
-            self.vision_system()
+        # if (not self.xFlag) or (not self.zFlag):
+        #     # Power back on vision system
+        #     self.vision_system()
         
-        else:
+        # else:
             # Functionality for interfacing with ROS:
             # Send y, z, and theta into ROS
-            self.mgi.actuate_claw()          # open/close claw
-            self.mgi.rotate_claw(theta)      # rotate claw
-            self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
+        # self.mgi.actuate_claw()          # open/close claw
+        # self.mgi.rotate_claw(theta)      # rotate claw
+        # self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
+        print(f"data received at end: y {y} z {z} theta {theta}")
 
 
 if __name__ == "__main__":
