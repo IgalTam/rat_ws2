@@ -9,6 +9,7 @@ import numpy as np
 # from smbus2 import SMBus
 # import Rovor.src.rovor.jetson as Visioncle
 from move_group_interface import MoveGroupInterface
+from i2c_bus import main as visionI2c
 
 #from .rover import *
 
@@ -19,6 +20,7 @@ class VisionCommunication:
         self.zFlag = False
         self.maxDistanceArm = 30
         self.mgi = MoveGroupInterface()
+        #self.i2cBus = main()
         pass
     
     def vision_system(self):
@@ -42,6 +44,8 @@ class VisionCommunication:
 
         # Power down vision system
         # Vision.Jetson.power_off();
+
+        data_packets = visionI2c
 
         # Test
         data_packets = "x12y13z15a120"

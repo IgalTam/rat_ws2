@@ -335,6 +335,8 @@ def main():
     data = bus.read_file()
     print(data)
 
+    return data
+
 
 if __name__ == '__main__':
     main()
