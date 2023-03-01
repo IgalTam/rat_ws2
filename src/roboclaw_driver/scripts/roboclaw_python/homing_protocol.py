@@ -1,3 +1,10 @@
+# AUTHOR: Sebastian Rosso (NUADA Team)
+# DATE: 1/15/2023
+#   PURPOSE: This is the file containing the functions to complete the homing.
+#            DO NOT MAKE CHANGES TO THE FILE IF ATTEMPTING TESTING. go to the 
+#            homing_testing.py 
+#################################################
+
 import RPi.GPIO as gpio
 from roboclaw_3 import Roboclaw
 import time
