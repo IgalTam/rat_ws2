@@ -48,7 +48,7 @@ class VisionCommunication:
         data_packets = visionI2c
 
         # Test
-        data_packets = "x12y13z15a120"
+        # data_packets = "x12y13z15a120"
 
         x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
         y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')])
@@ -108,6 +108,7 @@ class VisionCommunication:
 if __name__ == "__main__":
     vc = VisionCommunication()
     vc.vision_system()
+    
     # zflag = None
     # vc = VisionCommunication()
     # vc.distance_view(0, zflag)
