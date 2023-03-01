@@ -44,12 +44,12 @@ class VisionCommunication:
         # Vision.Jetson.power_off();
 
         # Test
-        data_packets = (0, 20, 20, 0)
+        data_packets = "x12y13z15a120"
 
-        x: float = data_packets[0]
-        y: float = data_packets[1]
-        z: float = data_packets[2]
-        theta: int = data_packets[3]
+        x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
+        y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')])
+        z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')])
+        theta: int = int(data_packets[data_packets.index('a') + 1: ])
 
         print(f"Data:\n {x}, {y}, {z}, {theta}")
 
@@ -108,3 +108,12 @@ if __name__ == "__main__":
     # vc = VisionCommunication()
     # vc.distance_view(0, zflag)
     # print(zflag)
+
+    # data_packets = "x12.5y13z15a120"
+
+    # x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
+    # y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')])
+    # z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')])
+    # theta: int = int(data_packets[data_packets.index('a') + 1: ])
+
+    # print(f"Data:\n {x}, {y}, {z}, {theta}")
