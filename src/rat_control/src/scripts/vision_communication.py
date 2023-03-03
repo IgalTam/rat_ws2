@@ -11,6 +11,9 @@ import numpy as np
 from move_group_interface import MoveGroupInterface
 from i2c_bus import *
 
+sys.path.insert(0, "/home/pi/goscout/Rover/src/rover")
+
+# from rover import main as rov
 #from .rover import *
 
 class VisionCommunication:
@@ -99,6 +102,7 @@ class VisionCommunication:
             # Call function to calculate angle
             # Tank Turn Function:
             # turn(turnDirection, turnAngle)
+            # rov.do_tank_turn()
             
         else:
             self.xFlag = True
