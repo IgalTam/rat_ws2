@@ -109,7 +109,8 @@ def full_testing(rc):
 #   Program will run the homing protocol a given number of time as specified below
 #   and produce range 
     numRuns = int(input("Enter the number of times you want to run homing: "))
-    print("\nREADY TO RUN TESTING FOR HOMING\n")
+    print("\nREADY TO RUN TESTING FOR HOMING")
+    print("--------------------------------")
     print("NOTE: at any point during testing, using ctrl + C will stop the arm in any position and return to the menu\n")
     input("Press any key to continue: ")
 #   Start of Testing Run
@@ -135,63 +136,70 @@ def full_testing(rc):
 
 
 def confirm_motor_addresses():
-    print("CURRENT ARM ROBOCLAW INFORMATION\n\n")
+    print("CURRENT ARM ROBOCLAW INFORMATION")
+    print("--------------------------------")
     time.sleep(0.5)
-    print("BASE Motor Roboclaw Address", BASE_ADDR, "\n")
-    print("BASE Motor Number: ", BASE_MOTOR, "\n\n")
+    print("BASE Motor Roboclaw Address", BASE_ADDR)
+    print("BASE Motor Number: ", BASE_MOTOR)
+    print("--------------------------------")
     time.sleep(0.5)
-    print("ELBOW Motor Roboclaw Address", ELBOW_ADDR, "\n")
-    print("ELBOW Motor Number: ", ELBOW_MOTOR, "\n\n")
+    print("ELBOW Motor Roboclaw Address", ELBOW_ADDR)
+    print("ELBOW Motor Number: ", ELBOW_MOTOR)
+    print("--------------------------------")
     time.sleep(0.5)
-    print("WRIST Motor Roboclaw Address", WRIST_ADDR, "\n")
-    print("WRIST Motor Number: ", WRIST_MOTOR, "\n\n")
+    print("WRIST Motor Roboclaw Address", WRIST_ADDR)
+    print("WRIST Motor Number: ", WRIST_MOTOR)
+    print("--------------------------------")
     time.sleep(0.5)
-    print("CLAW Motor Roboclaw Address", CLAW_ADDR, "\n")
-    print("CLAW Motor Number: ", CLAW_MOTOR, "\n\n")
+    print("CLAW Motor Roboclaw Address", CLAW_ADDR)
+    print("CLAW Motor Number: ", CLAW_MOTOR)
+    print("--------------------------------")
     time.sleep(0.25)
-    print("Please ensure values are are correct before moving forward with testing\n")
+    print("Please ensure values are are correct before moving forward with testing")
     input("Press any key to Continue\n\n")
 
 
 def test_main(rc):
 #   Main location for testing the homing protocol 
-    print("RUNNING ARM TESTING ENVIRONMENT\n\n")
+    print("###############################\nRUNNING ARM TESTING ENVIRONMENT\n###############################\n")
     confirm_motor_addresses()
 #   Printing out information on motor before going into normal testing
 
     while(1 == 1):
 #   Test Env Main loop
-        print("Please enter the number of the type of testing you want to complete\n")
-        print("1 for User entered Signle Motor Movments\n")
-        print("2 for a single homing attempt\n")
-        print("3 for the Full Homing Procedure Testing\n")
+        print("Please enter the number of the type of testing you want to complete")
+        print("--------------------------------")
+        print("1 for User entered Signle Motor Movments")
+        print("2 for a single homing attempt")
+        print("3 for the Full Homing Procedure Testing")
         print("4 to exit testing envirorment\n")
-        menuNav = input("Enter choice Here: ")
+        menuNav = int(input("Enter choice Here: "))
 #       Offering choice to user to run different types of tests 
-        match(menuNav):
-            case 1:
-#               CASE: Single Movements for arm
-                print("\nWARNING: the addresses used in config settings are not bound to Macros in homing_testing.py\n\n")
-                configSettings()
-                
-            case 2:
-#               CASE: Run a single homing run
-                if(input("\nARM WILL TRY TO FIND HOME, confirm? y/n\n\n") == "y"):
-                    basic_testing(rc)
-            case 3:
+        if(menuNav == 1):
+#           CASE: Single Movements for arm
+            print("\n#############\nSINGLE MOVEMENTS\n#############")
+            print("WARNING: the addresses used in config settings are not bound to Macros in homing_testing.py\n\n")
+            configSettings()                
+        elif(menuNav == 2):
+#           CASE: Run a single homing run
+            print("\n#################\nSINGLE HOMING\n#################")
+            if(input("\nARM WILL TRY TO FIND HOME, confirm? y/n\n\n") == "y"):
+                basic_testing(rc)
+        elif(menuNav == 3):
 #               CASE: Run full testing procedure to test accuracy of arm
-                if(input("\nARM WILL RUN FULL HOMING TEST, confirm? y/n\n\n") == "y"):
-                    print(("WARNING: Before Testing, please confirm arm is in the ideal home position\n"))
-                    print("This is extremley important for safe and acurate test results\n")
-                    if(input("Do you want to continue? y/n\n") == "y"):
-                        full_testing(rc)
-            case 4:
-#               CASE: Leave Testing Environment
-                print("\nLeaving Test Environment\n")
-                break
-            case _:
-#               CASE: Invalid entry
-                print("\nINVALID ENTRY: ", menuNav, "\n\n")
+            print("\n##############\nHOMING TESTING\n##############")
+            if(input("\nARM WILL RUN FULL HOMING TEST, confirm? y/n\n\n") == "y"):
+                print(("\nWARNING: Before Testing, please confirm arm is in the ideal home position"))
+                print("This is extremley important for safe and acurate test results")
+                if(input("Do you want to continue? y/n\n\n") == "y"):
+                    full_testing(rc)
+        elif(menuNav == 4):
+#           CASE: Leave Testing Environment
+            print("\n########################\nLeaving Test Environment\n########################")
+            break
+        else:
+#           CASE: Invalid entry
+            print("\nINVALID ENTRY: ", menuNav, "\n\n")
 
 
 
