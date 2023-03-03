@@ -10,8 +10,7 @@ import numpy as np
 # import Rovor.src.rovor.jetson as Visioncle
 from move_group_interface import MoveGroupInterface
 from i2c_bus import main as visionI2c
-
-#from .rover import *
+# from rover_movement import roverMovement
 
 class VisionCommunication:
 
@@ -87,7 +86,7 @@ class VisionCommunication:
             move_distance = ((z - self.maxDistanceArm) + self.maxDistanceArm) / 2
             
             # Call function to move rover forward
-            # move_straight(z)
+            # move_forward(move_distance)
             
         else:
             self.zFlag = True
