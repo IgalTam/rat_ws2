@@ -9,6 +9,7 @@
 import RPi.GPIO as gpio
 from roboclaw_3 import Roboclaw
 from homing_protocol import *
+from encoders import configSettings
 import time
 
 
@@ -65,78 +66,13 @@ CLAW_SPEED = 100
 # Speed of CLAW while homing
 
 
+def kill_all_motors(rc):
+#   Should only be used in urgent situations will stop the movement of the whole arm
+    turn_by_encoder(rc, BASE_ADDR, BASE_MOTOR, 0, BASE_SPEED, 0, 0.1)
+    turn_by_encoder(rc, ELBOW_ADDR, ELBOW_MOTOR, 0, ELBOW_SPEED, 0, 0.1)
+    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, 0, WRIST_SPEED, 0, 0.1)
+    turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, 0, CLAW_SPEED, 0, 0.1)
 
-
-def test_wrist_homing(rc: Roboclaw, address):
-    """Fuction to allow for easier testing of wrist homing"""
-#   Moved most of the code from main to here in order to be able to test homing in sectionals
-
-    currentPos = rc.ReadEncM2(address)[1]
-    print("Testing Wrist Homing on Roboclaw: ",  address, " M2\n")
-    print("Current Encoder count: ",  currentPos, "\n")
-#   Getting current information on wrist
-    
-    if (input("Attempt to Zero? y/n: ") == "y"):
-#       Asking user if they want to attempt basic homing
-        rotate_wrist_till_stop(rc, address)
-        currentPos = rc.ReadEncM2(address)[1]
-        print("\nCurrent Encoder count: ",  currentPos, "\n")
-        
-    
-    currentPos = rc.ReadEncM2(address)[1]
-    rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, (currentPos + TEST_WRIST_FINE), 1)
-#   TODO: ensure this is the correct location to go to
-
-    print("\n\nCurrent encoder position: ",  currentPos, "\n")
-    if (input("Set current Encoder position to zero? y/n: ") == "y"):
-#       Asking user if they want to actually zero the position
-        rc.SetEncM2(address, 0)
-        print("\nCurrent encoder position: ",  currentPos)
-
-        if (input("\n\nAttempt to move to projected home? y/n: ") == "y"):
-#           Will attemt to move the arm to the home position
-            rc.SpeedAccelDeccelPositionM2(address, 0, TEST_SPEED, 0, TEST_WRIST_HOME, 1)
-
-            if (input("\n\nSet this new psoition as the zero? y/n: ") == "y"):
-                rc.SetEncM2(address, 0)
-                print("\nWrist Should be Homed and Zeroed\n")
-
-    time.sleep(1)
-    input("Testing System holding...Press any key to leave test\n")
-#   Waiting to be ready to exit testing
-
-
-def test_elbow_homing(rc: Roboclaw, address):
-    """Fuction to allow for easier testing of elbow homing"""
-#   Moved most of the code from main to here in order to be able to test homing in sectionals
-
-    currentPos = rc.ReadEncM1(address)[1]
-    print("Testing Elbow Homing on Roboclaw: ",  address, " M2\n")
-    print("Current Encoder count: ",  currentPos, "\n\n")
-#   Getting current information on elbow
-    
-    if (input("Attempt to Zero? y/n: ") == "y"):
-#       Asking user if they want to attempt basic homing
-        rotate_elbow_till_stop(rc, address)
-        currentPos = rc.ReadEncM1(address)[1]
-        print("\nCurrent Encoder count: ",  currentPos, "\n")
-        
-    if(input("\n\nFinetune stop? y/n: ") == "y"):
-#   Adjust the physical stop to back off the stop
-        currentPos = rc.ReadEncM1(address)[1]
-        rc.SpeedAccelDeccelPositionM1(address, 0, TEST_SPEED, 0, (currentPos + TEST_ELBOW_FINE), 1)
-#       TODO: ensure this is the correct location to go to
-
-    print("\n\nCurrent encoder position: ",  currentPos, "\n")
-    if (input("Set current Encoder position to zero? y/n: ") == "y"):
-#       Asking user if they want to actually zero the position
-        rc.SetEncM1(address, 0)
-        print("\nCurrent encoder position: ",  currentPos)
-
-    time.sleep(1)
-    input("Testing System holding...Press any key to leave test\n")
-#   Waiting to be ready to exit testing
- 
 
 def test_setup(rc: Roboclaw):
     while(input("Want to change an arm starting position? y/n\n") == "y"):
@@ -161,19 +97,44 @@ def test_setup(rc: Roboclaw):
     print("SetUp complete\nMoving into normal testing\n\n")
 
 def basic_testing(rc):
-    test_setup(rc)
+#   Base homing
     home_base_setup_run(rc)
-    
+#   Wrist Homing
     double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_ENC_DEG, WRIST_ENC_BREAK)
+#   Elbow Homing
     double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, ELBOW_ENC_DEG, ELBOW_ENC_BREAK)
 
 
 def full_testing(rc):
 #   Program will run the homing protocol a given number of time as specified below
 #   and produce range 
-    val = 1
+    numRuns = int(input("Enter the number of times you want to run homing: "))
+    print("\nREADY TO RUN TESTING FOR HOMING\n")
+    print("NOTE: at any point during testing, using ctrl + C will stop the arm in any position and return to the menu\n")
+    input("Press any key to continue: ")
+#   Start of Testing Run
+    try:
+        val = 1
+    except KeyboardInterrupt:
+        print("FORCED OUT OF TESTING LOOP\n")
+        kill_all_motors(rc)
 
-def print_motor_addresses():
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def confirm_motor_addresses():
     print("CURRENT ARM ROBOCLAW INFORMATION\n\n")
     time.sleep(0.5)
     print("BASE Motor Roboclaw Address", BASE_ADDR, "\n")
@@ -192,17 +153,45 @@ def print_motor_addresses():
     input("Press any key to Continue\n\n")
 
 
-def test_homing(rc):
+def test_main(rc):
 #   Main location for testing the homing protocol 
-    print("CURRENTLY TESTING HOMING PROCEDURE\n\n")
-    print_motor_addresses()
+    print("RUNNING ARM TESTING ENVIRONMENT\n\n")
+    confirm_motor_addresses()
 #   Printing out information on motor before going into normal testing
-    if(input("Do you want to only find the home position once? y/n" == "y")):
-#       CASE: only the basic procedure should be run here to find the home
-        basic_testing(rc)
-    else:
-#       CASE: Run full testing procedure to test acuracy of arm
-        full_testing(rc)
+
+    while(1 == 1):
+#   Test Env Main loop
+        print("Please enter the number of the type of testing you want to complete\n")
+        print("1 for User entered Signle Motor Movments\n")
+        print("2 for a single homing attempt\n")
+        print("3 for the Full Homing Procedure Testing\n")
+        print("4 to exit testing envirorment\n")
+        menuNav = input("Enter choice Here: ")
+#       Offering choice to user to run different types of tests 
+        match(menuNav):
+            case 1:
+#               CASE: Single Movements for arm
+                print("\nWARNING: the addresses used in config settings are not bound to Macros in homing_testing.py\n\n")
+                configSettings()
+                
+            case 2:
+#               CASE: Run a single homing run
+                if(input("\nARM WILL TRY TO FIND HOME, confirm? y/n\n\n") == "y"):
+                    basic_testing(rc)
+            case 3:
+#               CASE: Run full testing procedure to test accuracy of arm
+                if(input("\nARM WILL RUN FULL HOMING TEST, confirm? y/n\n\n") == "y"):
+                    print(("WARNING: Before Testing, please confirm arm is in the ideal home position\n"))
+                    print("This is extremley important for safe and acurate test results\n")
+                    if(input("Do you want to continue? y/n\n") == "y"):
+                        full_testing(rc)
+            case 4:
+#               CASE: Leave Testing Environment
+                print("\nLeaving Test Environment\n")
+                break
+            case _:
+#               CASE: Invalid entry
+                print("\nINVALID ENTRY: ", menuNav, "\n\n")
 
 
 
@@ -214,6 +203,6 @@ def main():
 #   generate/open port
     rc.Open()
     
-    basic_testing(rc)
+    test_main(rc)
 if __name__ == "__main__":
     main()
