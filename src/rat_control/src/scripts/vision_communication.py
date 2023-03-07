@@ -47,6 +47,13 @@ class VisionCommunication:
             if data:
                 print(data)
                 return data
+        
+    
+    def i2c_test(self):
+        """reads and saves image file sent over I2C"""
+        bus = I2CBus()
+        data = bus.read_file()
+
     
     def vision_system(self):
         # Power up vision system
@@ -75,14 +82,15 @@ class VisionCommunication:
         data_packets = self.send_i2c_cmd()
 
         # Test
-        # data_packets = "x12y13z15a120"
+        # data_packets = "x12y13z15a90.0"
 
         x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
         y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')])
         z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')])
-        theta: int = int(data_packets[data_packets.index('a') + 1: ])
+        theta = float(data_packets[data_packets.index('a') + 1: ])
+        theta = int(theta)
 
-        print(f"Data:\n {x}, {y}, {z}, {theta}")
+        print(f"Data:\n x: {x}, y: {y}, z: {z}, a: {theta}")
 
         self.horizontal_view(x, z)
         self.distance_view(z)
@@ -130,14 +138,17 @@ class VisionCommunication:
             # Send y, z, and theta into ROS
         self.mgi.actuate_claw()          # open/close claw
         self.mgi.rotate_claw(theta)      # rotate claw
-        self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
+        self.mgi.vision_to_moveit(y, z)  # move to coordinate location (270-315 deg. angle of approach)
         # print(f"data received at end: y {y} z {z} theta {theta}")
 
 
 if __name__ == "__main__":
     vc = VisionCommunication()
-    vc.vision_system()
+    # while True:
+    #     vc.vision_system()
     
+    vc.i2c_test()
+
     # zflag = None
     # vc = VisionCommunication()
     # vc.distance_view(0, zflag)
