@@ -12,6 +12,7 @@ RatHWInterface::RatHWInterface(ros::NodeHandle& nh, urdf::Model* urdf_model)
 {
   telemetry_sub = nh.subscribe("/roboclaw_telemetry", 1, &RatHWInterface::telemetryCallback, this);
   cmd_pub = nh.advertise<rat_control::armCmd>("/roboclaw_cmd", 1);
+  cmd_sub = nh.subscribe("/roboclaw_cmd", 1, &RatHWInterface::cmdCallback, this);
 
   // unused read to resolve overload
   // PENDING TROUBLESHOOTING
@@ -32,14 +33,39 @@ void RatHWInterface::telemetryCallback(const rat_control::ratTelemetry::ConstPtr
 // # uint32 isrTicks # this would overflow if the robot is left on for 497 days straight at 100 hz 
 // # uint8 bufferHealth
 
-for (int i=0; i<num_joints_; i++)
-{
-  joint_position_[i] = msg->angle[i];
-  //joint_velocity_[i] = msg->vel[i];
+  for (int i=0; i<num_joints_; i++)
+  {
+    joint_position_[i] = msg->angle[i];
+    //joint_velocity_[i] = msg->vel[i];
+  }
+
+
+
+
 }
 
+void RatHWInterface::cmdCallback(const rat_control::armCmd::ConstPtr &msg) {
+  /* callback on reading from roboclaw_cmd topic, updates Moveit upon successful movement*/
+
+  /* wait for move to finish */
+  for (int j=0; j < 1000; j++) {
+    ;
+  }
+
+  ROS_INFO("Transcribing physical position...");
+
+    for (int i=0; i<num_joints_; i++)
+  {
+    joint_position_[i] = msg->position_rads[i];
+  }
+
+  ROS_INFO("Yielding to Moveit planning...");
 
 
+  /* wait for move to finish */
+  for (int j=0; j < 1000; j++) {
+    ;
+  }
 
 }
 
@@ -72,6 +98,8 @@ void RatHWInterface::read(ros::Duration& elapsed_time)
   //   ;
   // }
   // ros::topic::waitForMessage<rat_control::armCmd>("/roboclaw_cmd");
+
+
 
   ros::spinOnce(); // this spin will trigger ros to check all callbacks and update state vecs
 }
