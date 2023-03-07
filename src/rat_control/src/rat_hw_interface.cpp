@@ -10,7 +10,6 @@ namespace rat_ns
 RatHWInterface::RatHWInterface(ros::NodeHandle& nh, urdf::Model* urdf_model)
   : ros_control_boilerplate::GenericHWInterface(nh, urdf_model)
 {
-  // telemetry_sub = nh.subscribe("/roboclaw_telemetry", 1, &RatHWInterface::telemetryCallback, this);
   cmd_pub = nh.advertise<rat_control::armCmd>("/roboclaw_cmd", 1);
   cmd_sub = nh.subscribe("/roboclaw_cmd", 1, &RatHWInterface::cmdCallback, this);
 
@@ -18,52 +17,15 @@ RatHWInterface::RatHWInterface(ros::NodeHandle& nh, urdf::Model* urdf_model)
 
 }
 
-void RatHWInterface::telemetryCallback(const rat_control::ratTelemetry::ConstPtr &msg)
-{
-// float32[4] angle # degrees
-// #float32[6] vel # deg/s
-// #float32[6] current # amps
-// #time armReadTimestamp 
-// time startSyncTime 
-// # uint32 isrTicks # this would overflow if the robot is left on for 497 days straight at 100 hz 
-// # uint8 bufferHealth
-
-  for (int i=0; i<num_joints_; i++)
-  {
-    joint_position_[i] = msg->angle[i];
-    //joint_velocity_[i] = msg->vel[i];
-  }
-
-
-
-
-}
-
 void RatHWInterface::cmdCallback(const rat_control::armCmd::ConstPtr &msg) {
   /* callback on reading from roboclaw_cmd topic, updates Moveit upon successful movement*/
-
-  /* wait for move to finish */
-  for (int j=0; j < 1000; j++) {
-    ;
-  }
-
-  ROS_INFO("Transcribing physical position...");
 
     for (int i=0; i<num_joints_; i++)
   {
     joint_position_[i] = msg->position_rads[i];
   }
 
-  ROS_INFO("Yielding to Moveit planning...");
-
-
-  /* wait for move to finish */
-  for (int j=0; j < 1000; j++) {
-    ;
-  }
-
 }
-
 
 void RatHWInterface::init()
 {
@@ -78,23 +40,8 @@ void RatHWInterface::init()
 
 void RatHWInterface::read(ros::Duration& elapsed_time)
 {
-  // No need to read since the roboclaw driver node updates "/roboclaw_telemetry" 
+  // No need to read since the roboclaw driver node updates "/roboclaw_cmd" 
   // and we have a subscriber to that
-
-  // adding in "/roboclaw_telemetry" read to indicate completion of move to Moveit
-  // the actual read value is unimportant
-  // PENDING TROUBLESHOOTING
-  // ros::NodeHandle dummy;
-
-  // ROS_INFO("waiting on RatHWInterface read op\n");
-  // try {
-  //   ros::topic::waitForMessage<rat_control::armCmd>("/roboclaw_cmd", &dummy, ros::Duration());
-  // } catch(int dum) {
-  //   ;
-  // }
-  // ros::topic::waitForMessage<rat_control::armCmd>("/roboclaw_cmd");
-
-
 
   ros::spinOnce(); // this spin will trigger ros to check all callbacks and update state vecs
 }
