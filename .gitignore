@@ -7,3 +7,6 @@ src/rat_control/src/scripts/roboclaw_python/
 src/q
 src/roboclaw_driver/scripts/.joint_config.ini.swp
 .git-old-0/
+src/roboclaw_driver/scripts/roboclaw_publisher.py
+src/roboclaw_driver/scripts/nuada_subscriber.py
+src/roboclaw_driver/scripts/subscriber_clone.py
