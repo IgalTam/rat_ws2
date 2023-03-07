@@ -10,14 +10,9 @@ namespace rat_ns
 RatHWInterface::RatHWInterface(ros::NodeHandle& nh, urdf::Model* urdf_model)
   : ros_control_boilerplate::GenericHWInterface(nh, urdf_model)
 {
-  telemetry_sub = nh.subscribe("/roboclaw_telemetry", 1, &RatHWInterface::telemetryCallback, this);
+  // telemetry_sub = nh.subscribe("/roboclaw_telemetry", 1, &RatHWInterface::telemetryCallback, this);
   cmd_pub = nh.advertise<rat_control::armCmd>("/roboclaw_cmd", 1);
   cmd_sub = nh.subscribe("/roboclaw_cmd", 1, &RatHWInterface::cmdCallback, this);
-
-  // unused read to resolve overload
-  // PENDING TROUBLESHOOTING
-  // ROS_INFO("overloaded read message\n");
-  // ros::topic::waitForMessage<rat_control::armCmd>("/roboclaw_cmd", nh, ros::Duration());
 
   ROS_INFO("ratHWInterface Constructed!\n");
 

@@ -35,7 +35,7 @@ public:
   virtual void enforceLimits(ros::Duration& period);
 
 protected:
-  ros::Subscriber telemetry_sub;
+  // ros::Subscriber telemetry_sub;
   void telemetryCallback(const rat_control::ratTelemetry::ConstPtr &msg);
   ros::Publisher cmd_pub;
   ros::Subscriber cmd_sub;
