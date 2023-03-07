@@ -87,7 +87,7 @@ class MoveGroupInterface(object):
         self.eef_link = eef_link
         self.group_names = group_names
         self.PHI_MIN = 270
-        self.PHI_MAX = 315
+        self.PHI_MAX = 322 # minimum required for use
         self.phi_range = [self.PHI_MIN, self.PHI_MAX]
     
     def actuate_claw(self):
