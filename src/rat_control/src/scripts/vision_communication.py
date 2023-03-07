@@ -9,12 +9,13 @@ import numpy as np
 # from smbus2 import SMBus
 # import Rovor.src.rovor.jetson as Visioncle
 from move_group_interface import MoveGroupInterface
+
 from i2c_bus import *
 
 sys.path.insert(0, "/home/pi/goscout/Rover/src/rover")
 
 # from rover import main as rov
-#from .rover import *
+# from .rover import *
 
 class VisionCommunication:
 
@@ -27,6 +28,9 @@ class VisionCommunication:
         pass
 
     def send_i2c_cmd(self):
+        """I2C communication with the Vision team's Jetson Nano to the Arm team's
+        Raspberry Pi."""
+
         bus = I2CBus()
 
         # test writing a command to get cordinates
@@ -56,6 +60,18 @@ class VisionCommunication:
 
     
     def vision_system(self):
+        """Main function for the vision system interface. The function takes
+        the data packets from the Vision team and then parses the data values
+        for x, y, z, and theta. Then the functions needed for the rover's arm
+        to successfully move to a desired location are called.
+        
+        Data Values:
+        x           - Horizontal Coordinate (cm)
+        y           - Height Coordinate (cm)
+        z           - Depth Coordinate (cm)
+        theta       - Angle of the test tube (degrees)
+        """
+
         # Power up vision system
         # Vision.Jetson.power_on();
 
@@ -97,25 +113,31 @@ class VisionCommunication:
         self.position_set(y, z, theta)
 
     def horizontal_view(self, x, z):
+        """If x is not zero (x = 0 means arm is directly in front of sample tube),
+        have the rover do a tank turn."""
+
         if x != 0:
             self.xFlag = False
 
             if x > 0:
-                turnDirection = "left"
+                # Turning Left
+                pass
             elif x < 0:
-                turnDirection = "right"
+                # Turning Right
                 x = abs(x)
             
             turnAngle = math.asin(x / z)
             # Call function to calculate angle
             # Tank Turn Function:
-            # turn(turnDirection, turnAngle)
-            # rov.do_tank_turn()
+            # rov.do_tank_turn(angle)
             
         else:
             self.xFlag = True
     
     def distance_view(self, z):
+        """Checks to see if the same tube is too far for the rover's arm to reach. 
+        If the rover's arm can't reach, then the rover will move forward."""
+
         if z > self.maxDistanceArm:
             self.zFlag = False
 
@@ -123,12 +145,16 @@ class VisionCommunication:
             move_distance = ((z - self.maxDistanceArm) + self.maxDistanceArm) / 2
             
             # Call function to move rover forward
-            # move_straight(z)
+            # rov.move_forward(move_distance)
             
         else:
             self.zFlag = True
     
     def position_set(self, y, z, theta):
+        """If the rover had to do any tank turns or move forward, turn back on 
+        the vision system to obtain new data packets. Otherwise, send y, z, and 
+        theta values to ROS."""
+
         # if (not self.xFlag) or (not self.zFlag):
         #     # Power back on vision system
         #     self.vision_system()
