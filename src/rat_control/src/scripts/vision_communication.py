@@ -47,11 +47,11 @@ class VisionCommunication:
     #         if(pkt[I2CPacket.id_index].decode() != bus.pkt_targ_id) or (pkt[I2CPacket.stat_index] != b'd'):
     #             continue
 
-    #         # print received data
-    #         data = pkt[I2CPacket.data_index].decode().strip('\0')
-    #         if data:
-    #             print(data)
-    #             return data
+            # print received data
+            data = pkt[I2CPacket.data_index].decode().strip('\0')
+            if data:
+                print(data)
+                return data
     
     def vision_system(self):
         """Main function for the vision system interface. The function takes
@@ -91,14 +91,15 @@ class VisionCommunication:
         #data_packets = self.send_i2c_cmd()
 
         # Test
-        data_packets = "x12y13z15a120"
+        # data_packets = "x12y13z15a120"
 
         x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
         y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')])
         z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')])
-        theta: int = int(data_packets[data_packets.index('a') + 1: ])
+        theta = float(data_packets[data_packets.index('a') + 1: ])
+        theta = int(theta)
 
-        print(f"Data: {x}, {y}, {z}, {theta}")
+        print(f"Data:\n {x}, {y}, {z}, {theta}")
 
         return x, y, z, theta
 
@@ -152,9 +153,9 @@ class VisionCommunication:
         # else:
             # Functionality for interfacing with ROS:
             # Send y, z, and theta into ROS
-        # self.mgi.actuate_claw()          # open/close claw
-        # self.mgi.rotate_claw(theta)      # rotate claw
-        # self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
+        self.mgi.actuate_claw()          # open/close claw
+        self.mgi.rotate_claw(theta)      # rotate claw
+        self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
 
         # print(f"data received at end: y {y} z {z} theta {theta}")
 
@@ -227,9 +228,7 @@ class VisionCommunication:
 if __name__ == "__main__":
 
     vc = VisionCommunication()
-
-    vc.main()
-    # vc.vision_system()
+    vc.vision_system()
     
     # zflag = None
     # vc = VisionCommunication()
