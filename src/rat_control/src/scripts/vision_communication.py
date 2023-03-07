@@ -5,14 +5,13 @@ import sys
 
 from typing import Union
 import numpy as np
-# import RPi.GPIO as GPIO
-# from smbus2 import SMBus
+
 # import Rovor.src.rovor.jetson as Visioncle
-from move_group_interface import MoveGroupInterface
+# from move_group_interface import MoveGroupInterface
 
-from i2c_bus import *
+# from i2c_bus import *
 
-sys.path.insert(0, "/home/pi/goscout/Rover/src/rover")
+# sys.path.insert(0, "/home/pi/goscout/Rover/src/rover")
 
 # from rover import main as rov
 # from .rover import *
@@ -23,34 +22,36 @@ class VisionCommunication:
         self.xFlag = False
         self.zFlag = False
         self.maxDistanceArm = 30
-        self.mgi = MoveGroupInterface()
+
+        # self.mgi = MoveGroupInterface()
+
         #self.i2cBus = main()
         pass
 
-    def send_i2c_cmd(self):
-        """I2C communication with the Vision team's Jetson Nano to the Arm team's
-        Raspberry Pi."""
+    # def send_i2c_cmd(self):
+    #     """I2C communication with the Vision team's Jetson Nano to the Arm team's
+    #     Raspberry Pi."""
 
-        bus = I2CBus()
+    #     bus = I2CBus()
 
-        # test writing a command to get cordinates
-        bus.write_pkt(b'cord', 'c', 0)
+    #     # test writing a command to get cordinates
+    #     bus.write_pkt(b'cord', 'c', 0)
 
-        # wait for response
-        while True:
-            pkt = bus.wait_response()
+    #     # wait for response
+    #     while True:
+    #         pkt = bus.wait_response()
             
-            if not pkt:
-                continue
+    #         if not pkt:
+    #             continue
 
-            if(pkt[I2CPacket.id_index].decode() != bus.pkt_targ_id) or (pkt[I2CPacket.stat_index] != b'd'):
-                continue
+    #         if(pkt[I2CPacket.id_index].decode() != bus.pkt_targ_id) or (pkt[I2CPacket.stat_index] != b'd'):
+    #             continue
 
-            # print received data
-            data = pkt[I2CPacket.data_index].decode().strip('\0')
-            if data:
-                print(data)
-                return data
+    #         # print received data
+    #         data = pkt[I2CPacket.data_index].decode().strip('\0')
+    #         if data:
+    #             print(data)
+    #             return data
     
     def vision_system(self):
         """Main function for the vision system interface. The function takes
@@ -86,30 +87,27 @@ class VisionCommunication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
-        print('start of vision system')
 
-        data_packets = self.send_i2c_cmd()
+        #data_packets = self.send_i2c_cmd()
 
         # Test
-        # data_packets = "x12y13z15a120"
+        data_packets = "x12y13z15a120"
 
         x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
         y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')])
         z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')])
         theta: int = int(data_packets[data_packets.index('a') + 1: ])
 
-        print(f"Data:\n {x}, {y}, {z}, {theta}")
+        print(f"Data: {x}, {y}, {z}, {theta}")
 
-        self.horizontal_view(x, z)
-        self.distance_view(z)
-        self.position_set(y, z, theta)
+        return x, y, z, theta
 
     def horizontal_view(self, x, z):
         """If x is not zero (x = 0 means arm is directly in front of sample tube),
         have the rover do a tank turn."""
 
         if x != 0:
-            self.xFlag = False
+            self.xFlag = True
 
             if x > 0:
                 # Turning Left
@@ -124,14 +122,14 @@ class VisionCommunication:
             # rov.do_tank_turn(angle)
             
         else:
-            self.xFlag = True
+            self.xFlag = False
     
     def distance_view(self, z):
         """Checks to see if the same tube is too far for the rover's arm to reach. 
         If the rover's arm can't reach, then the rover will move forward."""
 
         if z > self.maxDistanceArm:
-            self.zFlag = False
+            self.zFlag = True
 
             # Calculate distance for going forward
             move_distance = ((z - self.maxDistanceArm) + self.maxDistanceArm) / 2
@@ -140,30 +138,98 @@ class VisionCommunication:
             # rov.move_forward(move_distance)
             
         else:
-            self.zFlag = True
+            self.zFlag = False
     
     def position_set(self, y, z, theta):
         """If the rover had to do any tank turns or move forward, turn back on 
         the vision system to obtain new data packets. Otherwise, send y, z, and 
         theta values to ROS."""
 
-        # if (not self.xFlag) or (not self.zFlag):
+        # if (self.xFlag) or (self.zFlag):
         #     # Power back on vision system
         #     self.vision_system()
         
         # else:
             # Functionality for interfacing with ROS:
             # Send y, z, and theta into ROS
-        self.mgi.actuate_claw()          # open/close claw
-        self.mgi.rotate_claw(theta)      # rotate claw
-        self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
+        # self.mgi.actuate_claw()          # open/close claw
+        # self.mgi.rotate_claw(theta)      # rotate claw
+        # self.mgi.vision_to_moveit(z, y)  # move to coordinate location (270-315 deg. angle of approach)
 
         # print(f"data received at end: y {y} z {z} theta {theta}")
 
+    def main(self):
+        """Vision System Interface"""
+
+        vc = VisionCommunication()
+        command = True
+
+        print ('\n***** Welcome User! *****\n')
+        
+        while(command == True):
+            a1 = input('Would you like to turn on the Vision System? (Type y or n): ')
+
+            if (a1 == 'y' or a1 == 'Y'):
+                print('\nTurning on Vision System...')
+                data_packets = vc.vision_system()
+
+                if (data_packets[0] != 0):
+                    a2 = input('\nThe rover is not facing the sample tube. ' 
+                        'Would you like to do a tank turn? (Type y or n): ')
+                    
+                    if (a2 == 'y' or a2 == 'Y'):
+                        print('\nTurning Rover...')
+                        self.horizontal_view(data_packets[0], data_packets[2])
+                
+                if (data_packets[2] > self.maxDistanceArm):
+                    a3 = input('\nThe rover is too far away from the sample tube. ' 
+                        'Would you like to move the rover forward? (Type y or n): ')
+                    
+                    if (a3 == 'y' or a3 == 'Y'):
+                        print('\nMoving Rover Forward...')
+                        self.distance_view(data_packets[2])
+                        
+                if (self.xFlag) or (self.zFlag):
+                    a4 = input('\nDetected the rover attempting to do either a '
+                           'tank turn or moving forward. Would you like to take another picture '
+                           'with the vision system? (Type y or n): ')
+                    
+                    self.xFlag = False
+                    self.zFlag = False
+                    
+                    if (a4 != 'y' or a4 != 'Y'):
+                        print('help\n')
+                
+                else:
+                    a5 = input('\nWould you like to move the arm to the desired '
+                               'location? (Type y or n): ')
+                    
+                    if (a5 == 'y' or a5 == 'Y'):
+                        print('\nMoving Arm...')
+                        self.position_set(data_packets[1], data_packets[2], data_packets[3])
+                    
+                    a6 = input('\nWould you like to use the vision system again? '
+                               '(Type y or n): ')
+                    
+                    if (a6 != 'y' or a6 != 'Y'):
+                        command = False
+            else:
+                command = False
+                
+        print("\n***** Logging Off *****")
+
+
+
+            #   '1. Get Value from Vision System',
+            #   '2. Tank Turns',
+            #   '3. ')
 
 if __name__ == "__main__":
+
     vc = VisionCommunication()
-    vc.vision_system()
+
+    vc.main()
+    # vc.vision_system()
     
     # zflag = None
     # vc = VisionCommunication()

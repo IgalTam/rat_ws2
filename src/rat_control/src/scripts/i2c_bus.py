@@ -329,7 +329,7 @@ def main():
         data = pkt[I2CPacket.data_index].decode().strip('\0')
         if data:
             print(data)
-            break;
+            break
 
     # test recieving an image file
     data = bus.read_file()
