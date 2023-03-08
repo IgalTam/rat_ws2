@@ -26,6 +26,32 @@ class RoboclawNode:
     writtendata = armCmd()
     writtendata.position_rads = [0, 0, 0, 1.57]
 
+    """
+    arm poses reference:
+    lowbase home     <>----O=====O
+		                   ||
+
+    highbase home	      -O=====O
+		                 | ||
+		                 | ||
+                         |
+                         V
+    
+    joint limits (testing):
+    base: 0 -- 90 degrees -> cnts_per_rev -- 5*cnts_per_rev//4
+    elbow: 0 -- 180 degrees (elbow is flipped) -> cnts_per_rev -- 3*cnts_per_rev//2
+    wrist: -90 -- 90 degrees -> 3*cnts_per_rev//4 -- 5*cnts_per_rev//4
+    """
+
+    # joint radian limits (testing)
+    BASE_MIN = 0
+    BASE_MAX = 1.57
+    ELBOW_MIN = 0
+    ELBOW_MAX = 3.14
+    WRIST_MIN = -1.57
+    WRIST_MAX = 1.57
+    JOINT_LIMIT_ARR = [(BASE_MIN, BASE_MAX), (ELBOW_MIN, ELBOW_MAX), (WRIST_MIN, WRIST_MAX)]
+
     same_msg_cnt = 0
     def rads_to_enc_cnts(self, cnts_per_rev, rads):
         """
@@ -52,8 +78,8 @@ class RoboclawNode:
             address = int(self.joint_addresses[i]) # default: 0x80 or 128
             channel = int(self.joint_channels[i])
             cnts_per_rev = int(self.joint_cnts_per_rev[i])
-            if i == 2: # need to set the wrist to 90 degrees
-                cnts_per_rev += cnts_per_rev//4
+            # if i == 2: # need to set the wrist to 90 degrees
+            #     # cnts_per_rev += cnts_per_rev//4
             if channel == 1:
                 self.rc.SetEncM1(address,cnts_per_rev)
             if channel == 2:
@@ -69,7 +95,7 @@ class RoboclawNode:
         return True
 
     def callback(self, data):
-        if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+        if data.position_rads[self.num_joints - 1] < 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Actuating Claw...")
             address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
             self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
@@ -77,23 +103,24 @@ class RoboclawNode:
             self.rc.SetEncM1(address, 0) # reset this encoder
             return
         # upon getting a msg, check if previous msg is the same
-        if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
-            self.same_msg_cnt += 1
-        else:
-           # print("new message")
-            self.same_msg_cnt = 0
-            self.old_data = data
-            return
+        # if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
+        #     self.same_msg_cnt += 1
+        # else:
+        #     print("new message")
+        #     self.same_msg_cnt = 0
+        #     self.old_data = data
+        #     return
 
-        if self.same_msg_cnt > 3: # data has stabilized write it
-            self.same_msg_cnt = 0
-           # print("data stabilized")
+        # if self.same_msg_cnt > 3: # data has stabilized write it
+        #     self.same_msg_cnt = 0
+        #    # print("data stabilized")
             
-        else:
-           # print("same data recieved")
-            return
-        if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
-            return
+        # else:
+        #     # print("same data recieved")
+        #     return
+        # if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
+        #     # print('float list comp check')
+        #     return
         print("writing")
         
 
