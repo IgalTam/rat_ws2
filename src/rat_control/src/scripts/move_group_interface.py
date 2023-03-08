@@ -16,9 +16,16 @@ from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 from roboclaw_python.roboclaw_3 import Roboclaw # for actuating claw, as rollmotor is NOT in urdf and not visible to moveit
 
-# from moveit_msgs.msg import RobotState
-# from sensor_msgs.msg import JointState
-# from std_msgs.msg import Header
+
+BASE_MIN = 0
+BASE_MAX = -3.92699
+
+ELBOW_MIN = 0
+ELBOW_MAX = -3.92699
+
+WRIST_MIN = -3.14159
+WRIST_MAX = 0.785398
+
 
 """
 pose.position:
@@ -221,6 +228,21 @@ def main_cmd(x=None, z=None, phi_range=None, claw=None, fk=None):
         forwardKinematics(cur_joint_vals)
     else:
         joint_solution_angles, _ = inverseKinematics(x, z, phi_lo=phi_range[0], phi_hi=phi_range[1])
+        if (joint_solution_angles[1] > BASE_MIN):
+                joint_solution_angles[1] = BASE_MIN
+        if (joint_solution_angles[1] < BASE_MAX):
+                joint_solution_angles[1] = BASE_MAX
+        
+        if (joint_solution_angles[2] > ELBOW_MIN):
+                joint_solution_angles[2] = ELBOW_MIN
+        if (joint_solution_angles[2] < ELBOW_MAX):
+                joint_solution_angles[2] = ELBOW_MAX
+
+        if (joint_solution_angles[3] < WRIST_MIN):
+                joint_solution_angles[3] = WRIST_MIN
+        if (joint_solution_angles[3] > WRIST_MAX):
+                joint_solution_angles[3] = WRIST_MAX
+
         print(arm_interface.move_group.get_current_joint_values())
         if not joint_solution_angles:
             print("No solution found exiting...")
