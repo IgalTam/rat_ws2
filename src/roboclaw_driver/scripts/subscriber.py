@@ -52,8 +52,8 @@ class RoboclawNode:
             address = int(self.joint_addresses[i]) # default: 0x80 or 128
             channel = int(self.joint_channels[i])
             cnts_per_rev = int(self.joint_cnts_per_rev[i])
-            if i == 2: # need to set the wrist to 90 degrees
-                cnts_per_rev += cnts_per_rev//4
+            # if i == 2: # need to set the wrist to 90 degrees
+            #     # cnts_per_rev += cnts_per_rev//4
             if channel == 1:
                 self.rc.SetEncM1(address,cnts_per_rev)
             if channel == 2:
@@ -68,14 +68,51 @@ class RoboclawNode:
                 return False
         return True
 
+    def limit_joints(self, data_arr):
+        """restricts incoming joint angles to preset limits
+        implemented for hardware safety
+        NOTE: will break the rest of the ROS operation if engaged
+        due to offsetting the actual encoders from where Moveit thinks
+        they are"""
+        for joint_idx in range(len(data_arr)-1):
+            # set to minimum if below minimum
+            if data_arr[joint_idx] < self.JOINT_LIMIT_ARR[joint_idx][0]:
+                data_arr[joint_idx] = self.JOINT_LIMIT_ARR[joint_idx][0]
+                print(f'motor {joint_idx} limited to {data_arr[joint_idx]}')
+            # set to maximum if below maximum
+            elif data_arr[joint_idx] > self.JOINT_LIMIT_ARR[joint_idx][1]:
+                data_arr[joint_idx] = self.JOINT_LIMIT_ARR[joint_idx][1]
+                print(f'motor {joint_idx} limited to {data_arr[joint_idx]}')
+        return data_arr
+
     def callback(self, data):
         if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Actuating Claw...")
-            address = 0x81 # int(self.joint_addresses[self.num_joints - 1])
             self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
             time.sleep(1)
-            self.rc.SetEncM1(address, 0) # reset this encoder
+            self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
             return
+        elif data.position_rads[self.num_joints - 1] > 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+            print("Rotating Claw...")
+            radian_angle = data.position_rads[self.num_joints - 1] # radian_angle is the intended position the claw needs to rotate to
+
+            # due to the mechanism of the claw, it cannot be rotated backwards -- it 
+            # can only move forward. So, if the new angle passed is less than the angle that was
+            # previously passed in, the claw must rotate to home position (0 radians) and then move
+            # forward from home to the passed in radian_angle.
+            if (radian_angle < self.claw_pos):
+                encoder_counts = self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), 6.28319 - self.claw_pos + radian_angle)
+                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, -1*encoder_counts, 1)
+                time.sleep(1)
+                self.claw_pos = radian_angle
+            elif (radian_angle >= self.claw_pos):
+                encoder_counts = self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), radian_angle - self.claw_pos)
+                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, -1*encoder_counts, 1)
+                time.sleep(1)
+                self.claw_pos = radian_angle
+            self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
+            return
+
         # upon getting a msg, check if previous msg is the same
         if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
             self.same_msg_cnt += 1
@@ -85,19 +122,18 @@ class RoboclawNode:
             self.old_data = data
             return
 
-        if self.same_msg_cnt > 3: # data has stabilized write it
-            self.same_msg_cnt = 0
-           # print("data stabilized")
+        # if self.same_msg_cnt > 3: # data has stabilized write it
+        #     self.same_msg_cnt = 0
+        #    # print("data stabilized")
             
-        else:
-           # print("same data recieved")
-            return
-        if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
-            return
+        # else:
+        #     # print("same data recieved")
+        #     return
+        # if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
+        #     # print('float list comp check')
+        #     return
         print("writing")
         
-
-
         rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
         # init message to publish for hardware interface telem_callback
         telem_msg = ratTelemetry()
@@ -140,9 +176,9 @@ class RoboclawNode:
             deccel2 = 0
             cnts2 = 0
 
-## Doing this seperate based on the channels seems kind of dumb, but roboclaw lib
-### uses different funcs for m1 and m2, there is a func for both m1 and m2 at the same time
-### so that could replace this later
+            ## Doing this seperate based on the channels seems kind of dumb, but roboclaw lib
+            ### uses different funcs for m1 and m2, there is a func for both m1 and m2 at the same time
+            ### so that could replace this later
             print(self.rc.ReadEncM2(128))
             if channel == 1:
                 # get current encoder val
@@ -193,19 +229,6 @@ class RoboclawNode:
         #rospy.loginfo(f'telem_msg: {telem_msg}')
         self.telem_pub.publish(telem_msg)
         self.writtendata = data
-        #self.rc.SpeedAccelDeccelPositionM1M2(address,accel1,speed1,deccel1,cnts1,
-            #                                         accel2,speed2,deccel2,cnts2,buf)
-        # read encoder values
-        #for i in range(self.num_joints):
-        #    address = int(self.joint_addresses[i]) # default: 0x80 or 128
-        #    channel = int(self.joint_channels[i])
-        #    if channel == 1:
-        #        enc_val = rc.ReadEncM1(address)
-
-
-        #rc.ForwardM1(address,32)#1/4 power forward
-        #time.sleep(3)
-        #rc.ForwardM1(address,0)	#1/4 power forward
 
     def listener(self):
 

@@ -334,7 +334,7 @@ def multi_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 #   TODO: Run possible 3 checks or mind a way to prevent a second false positive from getting through
 #   TODO: Make sure the stepback wont hit something by insuring the stepback is less than the amount moved already
     trueHome = False
-    recordedHomes = list[5]
+    # recordedHomes = list[5]
 
     firstStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal)
 #   First attempt at homing
