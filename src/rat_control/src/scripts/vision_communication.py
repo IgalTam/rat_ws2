@@ -36,7 +36,7 @@ class VisionCommunication:
         bus = I2CBus()
 
         # test writing a command to get cordinates
-        bus.write_pkt(b'cord', 'c', 0)
+        # bus.write_pkt(b'cord', 'c', 0)
 
         # wait for response
         while True:
@@ -50,7 +50,7 @@ class VisionCommunication:
 
             # print received data
             data = pkt[I2CPacket.data_index].decode().strip('\0')
-            if data:
+            if data == 'Ready':
                 print(data)
                 return data
             
