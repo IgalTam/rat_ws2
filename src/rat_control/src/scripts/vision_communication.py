@@ -17,6 +17,7 @@ sys.path.insert(0, "/home/pi/goscout/Rover/src/rover")
 # from .rover import *
 
 class VisionCommunication:
+    """Communication and Commands for Arm-Vision Rover"""
 
     def __init__(self):
         self.xFlag = False
@@ -53,7 +54,7 @@ class VisionCommunication:
                 print(data)
                 return data
             
-    def i2c_test(self):
+    def i2c_image(self):
         """reads and saves image file sent over I2C"""
         bus = I2CBus()
         data = bus.read_file()
@@ -65,10 +66,10 @@ class VisionCommunication:
         to successfully move to a desired location are called.
         
         Data Values:
-        x           - Horizontal Coordinate (cm)
-        y           - Depth Coordinate (cm)
-        z           - Height Coordinate (cm)
-        theta       - Angle of the test tube (degrees)
+        - x -         Horizontal Coordinate (cm)
+        - y -         Depth Coordinate (cm)
+        - z -         Height Coordinate (cm)
+        - theta -     Angle of the test tube (degrees)
         """
 
         # Power up vision system
@@ -92,7 +93,6 @@ class VisionCommunication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
-
         data_packets = self.send_i2c_cmd()
 
         # Test
@@ -101,8 +101,7 @@ class VisionCommunication:
         x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
         y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')])
         z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')])
-        theta = float(data_packets[data_packets.index('a') + 1: ])
-        theta = int(theta)
+        theta = int(float(data_packets[data_packets.index('a') + 1: ]))
 
         print(f"Data:\n {x}, {y}, {z}, {theta}")
 
@@ -233,6 +232,8 @@ if __name__ == "__main__":
     vc = VisionCommunication()
     vc.vision_system()
     
+    # vc.main()
+
     # zflag = None
     # vc = VisionCommunication()
     # vc.distance_view(0, zflag)
