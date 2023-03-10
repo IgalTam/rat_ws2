@@ -51,7 +51,7 @@ class VisionCommunication:
 
             # print received data
             data = pkt[I2CPacket.data_index].decode().strip('\0')
-            if data == 'Ready':
+            if data is not None:
                 print(data)
                 return data
             
@@ -94,10 +94,13 @@ class VisionCommunication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
-        data_packets = self.send_i2c_cmd()
-        if data_packets != "Ready":
+        
+        while True:
+            data_packets = self.send_i2c_cmd()
+            if data_packets == "Ready":
+                break
             print("Ready not detected, exiting")
-            return
+
         self.bus.write_pkt(b'cord', 'c', 0)
         print("Ready detected, waiting for coordinates")
         data_packets = self.send_i2c_cmd()
@@ -106,8 +109,8 @@ class VisionCommunication:
         # data_packets = "x12y13z15a120"
 
         x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
-        y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')])
-        z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')])
+        y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')]) - 6.9
+        z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')]) - 18.2
         theta = int(float(data_packets[data_packets.index('a') + 1: ]))
 
         print(f"Data:\n {x}, {y}, {z}, {theta}")
