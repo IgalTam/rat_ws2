@@ -25,6 +25,7 @@ class VisionCommunication:
         self.maxDistanceArm = 30
 
         self.mgi = MoveGroupInterface()
+        self.bus = I2CBus()
 
         # self.i2cBus = main()
         pass
@@ -33,19 +34,19 @@ class VisionCommunication:
         """I2C communication with the Vision team's Jetson Nano to the Arm team's
         Raspberry Pi."""
 
-        bus = I2CBus()
+        # bus = I2CBus()
 
         # test writing a command to get cordinates
         # bus.write_pkt(b'cord', 'c', 0)
 
         # wait for response
         while True:
-            pkt = bus.wait_response()
+            pkt = self.bus.wait_response()
             
             if not pkt:
                 continue
 
-            if(pkt[I2CPacket.id_index].decode() != bus.pkt_targ_id) or (pkt[I2CPacket.stat_index] != b'd'):
+            if(pkt[I2CPacket.id_index].decode() != self.bus.pkt_targ_id) or (pkt[I2CPacket.stat_index] != b'd'):
                 continue
 
             # print received data
@@ -56,8 +57,8 @@ class VisionCommunication:
             
     def i2c_image(self):
         """reads and saves image file sent over I2C"""
-        bus = I2CBus()
-        data = bus.read_file()
+        # bus = I2CBus()
+        data = self.bus.read_file()
     
     def vision_system(self):
         """Main function for the vision system interface. The function takes
@@ -93,6 +94,12 @@ class VisionCommunication:
         # Power down vision system
         # Vision.Jetson.power_off();
 
+        data_packets = self.send_i2c_cmd()
+        if data_packets != "Ready":
+            print("Ready not detected, exiting")
+            return
+        self.bus.write_pkt(b'cord', 'c', 0)
+        print("Ready detected, waiting for coordinates")
         data_packets = self.send_i2c_cmd()
 
         # Test
@@ -154,16 +161,16 @@ class VisionCommunication:
         the vision system to obtain new data packets. Otherwise, send y, z, and 
         theta values to ROS."""
 
-        if (self.xFlag) or (self.zFlag):
+        # if (self.xFlag) or (self.zFlag):
             # Power back on vision system
-            self.vision_system()
+            # self.vision_system()
         
-        else:
+        # else:
             # Functionality for interfacing with ROS:
             # Send y, z, and theta into ROS
-            self.mgi.actuate_claw()          # open/close claw
-            self.mgi.rotate_claw(theta)      # rotate claw
-            self.mgi.vision_to_moveit(y, z)  # move to coordinate location (270-315 deg. angle of approach)
+        self.mgi.actuate_claw()          # open/close claw
+        self.mgi.rotate_claw(theta)      # rotate claw
+        self.mgi.vision_to_moveit(y, z)  # move to coordinate location (270-315 deg. angle of approach)
 
         # print(f"data received at end: y {y} z {z} theta {theta}")
 
