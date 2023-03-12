@@ -21,10 +21,15 @@ sys.path.insert(0, "/home/pi/goscout/Rover/src/rover")
 class VisionCommunication:
     """Communication and Commands for Arm-Vision Rover"""
 
+    PRESET_Y = 5
+    PRESET_Z = 25
+
     def __init__(self):
         self.xFlag = False
         self.zFlag = False
         self.maxDistanceArm = 30
+        self.previousCord = None
+        self.tubeFlag = False
 
         self.mgi = MoveGroupInterface()
         self.bus = I2CBus()
@@ -45,14 +50,33 @@ class VisionCommunication:
 
             # print received data
             data = pkt[I2CPacket.data_index].decode().strip('\0')
+            
             if data is not None:
                 print(data)
+
+                if (self.previousCord is not None and self.previousCord == data):
+                    self.tubeFlag = True
+                
+                self.previousCord = data
+
                 return data
             
     def i2c_image(self):
         """reads and saves image file sent over I2C"""
 
         data = self.bus.read_file()
+    
+    def vision_ready(self, data_packets):
+        """Checks to see if the vision system is ready to receive commands."""
+
+        while True:
+            data_packets = self.send_i2c_cmd()
+            if data_packets == "Ready":
+                break
+            print("Ready not detected, exiting")        
+
+        self.bus.write_pkt(b'cord', 'c', 0)
+        print("Ready detected, waiting for coordinates")
     
     def vision_system(self):
         """Main function for the vision system interface. The function takes
@@ -67,14 +91,8 @@ class VisionCommunication:
         - theta -     Angle of the test tube (degrees)
         """
         
-        while True:
-            data_packets = self.send_i2c_cmd()
-            if data_packets == "Ready":
-                break
-            print("Ready not detected, exiting")
+        self.vision_ready()
 
-        self.bus.write_pkt(b'cord', 'c', 0)
-        print("Ready detected, waiting for coordinates")
         data_packets = self.send_i2c_cmd()
 
         # Test
@@ -87,11 +105,11 @@ class VisionCommunication:
 
         print(f"Data:\n {x}, {y}, {z}, {theta}")
 
-        self.horizontal_view(x, y)
-        self.distance_view(y)
-        self.position_set(y, z, theta)
+        # self.horizontal_view(x, y)
+        # self.distance_view(y)
+        # self.position_set(y, z, theta)
 
-        # return x, y, z, theta
+        return x, y, z, theta
     
     def vision_power_on(self):
         """Power on the vision system."""
@@ -169,25 +187,37 @@ class VisionCommunication:
             self.vision_system()
         
         else:
-            # Functionality for interfacing with ROS:
+            # Functionality for interfacing with ROS
             # Send y, z, and theta into ROS
             self.mgi.actuate_claw()          # open/close claw
             self.mgi.rotate_claw(theta)      # rotate claw
             self.mgi.vision_to_moveit(y, z)  # move to coordinate location (270-315 deg. angle of approach)
+    
+    def move_tube(self):
+        """Moves the sample tube when in the rover's arm."""
 
-    def main(self):
+        self.mgi.vision_to_moveit(self.PRESET_Y, self.PRESET_Z)  # move to coordinate location (270-315 deg. angle of approach)
+
+    
+    def verify_pickup(self):
+        """Verifies that the rover has picked up the sample tube."""
+
+        if (self.tubeFlag):
+            print("\nSample tube has been picked up.")
+            self.tubeFlag = False
+
+    def vision_interactive(self):
         """Vision System Interface"""
 
-        vc = VisionCommunication()
         command = True
 
         print ('\n***** Welcome User! *****\n')
         
         while(command == True):
-            a1 = input('Would you like to turn on the Vision System? (Type y or n): ')
+            a1 = input('Would you like to use the Vision System? (Type y or n): ')
 
             if (a1 == 'y' or a1 == 'Y'):
-                print('\nTurning on Vision System...')
+                print('\Using Vision System...')
                 data_packets = vc.vision_system()
 
                 if (data_packets[0] != 0):
@@ -238,6 +268,5 @@ class VisionCommunication:
 if __name__ == "__main__":
 
     vc = VisionCommunication()
-    vc.vision_system()
-    
-    # vc.main()
+
+    vc.main()
