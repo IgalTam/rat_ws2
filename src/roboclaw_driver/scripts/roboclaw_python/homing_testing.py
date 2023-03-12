@@ -60,7 +60,7 @@ CLAW_ADDR = 129
 CLAW_MOTOR = 1
 CLAW_ROT_OPENCLOSE = 60
 # Amount to run forward to open or close the claw 
-CLAW_BACKWARD_FULLROT = -230
+CLAW_BACKWARD_FULLROT = -240
 # Amount to run backward to complete a full rotation of claw
 CLAW_SPEED = 100
 # Speed of CLAW while homing
@@ -105,6 +105,10 @@ def basic_testing(rc):
     double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, ELBOW_ENC_DEG, ELBOW_ENC_BREAK)
 #   Claw Homing
     home_claw_setup_run(rc)
+#   Turn Claw 90 degrees to fit
+    turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, CLAW_BACKWARD_FULLROT//4, CLAW_SPEED, 1, 1)
+#   Moving wrist to actual home at end
+    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2 - 20, WRIST_SPEED, 1, 3)
 
 
 def full_testing(rc):

@@ -253,11 +253,14 @@ def home_base(homed, rc):
         val -= step
         print(val)
         # move to new position
-        rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
+        ran = rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
         time.sleep(3)
         
         # read in new position after move
-        cur_pos = rc.ReadEncM1(ROBOCLAW_1)[1]
+        move_vals = rc.ReadEncM1(ROBOCLAW_1)
+        status = move_vals[0]
+        cur_pos = move_vals[1]
+        print(f"status: {status}, ran: {ran}")
         print(f"prev_pos: {prev_pos}, cur_pos: {cur_pos}")
         
         #check if hall effect sensor hit
@@ -324,7 +327,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
             firstStop = secondStop
     
 #   Step back after finding home
-    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 2), TEST_SPEED, 1, 0.75)
+    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 6), TEST_SPEED, 1, 0.75)
    
 
 
