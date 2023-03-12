@@ -1,3 +1,10 @@
+# AUTHOR: Sebastian Rosso (NUADA Team)
+# DATE: 1/15/2023
+#   PURPOSE: This is the file containing the functions to complete the homing.
+#            DO NOT MAKE CHANGES TO THE FILE IF ATTEMPTING TESTING. go to the 
+#            homing_testing.py 
+#################################################
+
 import RPi.GPIO as gpio
 from roboclaw_3 import Roboclaw
 import time
@@ -45,15 +52,10 @@ ROBOCLAW_2 = 129
 
 TEST_SPEED = 40
 
-def turn_by_encoder(rc: Roboclaw, address, motorNum, encoderVal, motorSpd, printFlag):
+def turn_by_encoder(rc: Roboclaw, address, motorNum, encoderVal, motorSpd, printFlag, sleepTime):
 #   Purpose of this fuction is smplify the roboclaw movements between M1 and M2,
 #   CASE: the sleep time on this function is for short movements
 #   RETURNS: the new ecoder postion the motor is at
-    
-#   for larger movements it will increase to sleep time(very rough version)
-    sleepTime = 0.5
-    if(encoderVal > 100 or encoderVal < -100):
-        sleepTime = 0
 
 
     if(motorNum == 1):
@@ -107,7 +109,7 @@ def step_till_stop(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
     while not (disMoved <= breakVal ):
 #       Moves arm position at a slow rate towrds its desired physical stop       
         oldPos = newPos
-        newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
+        newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1, 0.75)
 #       TODO: Ensure Speed and amount moved is correct AND DIRECTION!!!!!  
 
 #       Updating position by setting the current position(newPos) to oldPos for next move 
@@ -130,7 +132,7 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
     newPos = read_encoder(rc, address, motorNum)
 #   newPos needs to be set to a value that will not break out of while loop right away
 
-    newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 0)
+    newPos = turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 0, 0.75)
     time.sleep(0.3)
     try:
         while not (disMoved <= breakVal):
@@ -148,7 +150,7 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
         finetune2 = 75
         if(address == ELBOW_ADDR):
             finetune2 = -75
-        turn_by_encoder(rc, address, motorNum, finetune2, TEST_SPEED, 0)
+        turn_by_encoder(rc, address, motorNum, finetune2, TEST_SPEED, 0, 0.75)
             
 
 
@@ -156,7 +158,7 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
     finetune = 75
     if(address == ELBOW_ADDR):
         finetune = -75
-    newPos = turn_by_encoder(rc, address, motorNum, finetune, TEST_SPEED, 0)
+    newPos = turn_by_encoder(rc, address, motorNum, finetune, TEST_SPEED, 0, 0.75)
 
 
 
@@ -306,7 +308,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
     while not (trueHome):
         stepBack = (-1 * encoderVal * 5)
 #       the ammount the arm will step back before attempting the homing again
-        turn_by_encoder(rc, address, motorNum, stepBack, TEST_SPEED, 1)
+        turn_by_encoder(rc, address, motorNum, stepBack, TEST_SPEED, 1, 0.75)
 
         time.sleep(2)
 
@@ -322,10 +324,41 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
             firstStop = secondStop
     
 #   Step back after finding home
-    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 2), TEST_SPEED, 1)
+    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 2), TEST_SPEED, 1, 0.75)
    
 
 
+
+def multi_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
+#   OBJECTIVE: To have the desired homing method run till find a stop, then have a back off and test again multiple times to ensure its working
+#   TODO: Run possible 3 checks or mind a way to prevent a second false positive from getting through
+#   TODO: Make sure the stepback wont hit something by insuring the stepback is less than the amount moved already
+    trueHome = False
+    # recordedHomes = list[5]
+
+    firstStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal)
+#   First attempt at homing
+    secondStop = 0
+    while not (trueHome):
+        stepBack = (-1 * encoderVal * 5)
+#       the ammount the arm will step back before attempting the homing again
+        turn_by_encoder(rc, address, motorNum, stepBack, TEST_SPEED, 1, 0.75)
+
+        time.sleep(2)
+
+        secondStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal)
+        print("HOME FOUND!!!\n\n\n\n\n\n\n\n\n")
+#       attempting to finding stop again
+
+        if(abs(secondStop - firstStop) <= breakVal * 2):
+#           CASE: found that the new position is similar to the last one
+            trueHome = True
+        else:
+#           CASE: there is some discreptency between the two values
+            firstStop = secondStop
+    
+#   Step back after finding home
+    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 2), TEST_SPEED, 1, 0.75)
 
 
 

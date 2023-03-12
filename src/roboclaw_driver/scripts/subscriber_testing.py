@@ -45,7 +45,7 @@ class RoboclawNode:
         
         self.rc = Roboclaw(self.joint_comports[0], self.BAUDRATE) # comports are not gonna change for us
         self.rc.Open()
-        self.center_motors()
+        self.center_motors()                                                  # flagged movement
 
     def center_motors(self):
         for i in range(self.num_joints):
@@ -68,8 +68,13 @@ class RoboclawNode:
                 return False
         return True
 
+    # limit propositions for limbs:
+    # base:
+    # elbow: 0 rad -> pi rad
+    #
+
     def callback(self, data):
-        rospy.loginfo(rospy.get_caller_id() + "I heard %s", data)
+        rospy.loginfo(rospy.get_caller_id() + " I heard %s", data)
         # init message to publish for hardware interface telem_callback
         telem_msg = ratTelemetry()
         # if input("Send commands to RoboClaws? (Yes/no): ") != "Yes":
@@ -112,7 +117,7 @@ class RoboclawNode:
                 # get current encoder val
                 cur_enc_val = self.rc.ReadEncM1(address)[1] # ReadEnc returns (success_code, enc_val, address)
                 cur_angle = ((cur_enc_val-cnts_per_rev)/cnts_per_rev) * 2 * pi
-                rospy.loginfo(f'Motor {i} {cur_enc_val}')
+                rospy.loginfo(f'Roboclaw {address} Motor {i} {cur_enc_val}')
                 # populate telemetry message
                 telem_msg.angle[i] = cur_angle
                 # if isclose(cur_angle, rads, rel_tol=self.FLOAT_EPSILON):
@@ -126,13 +131,13 @@ class RoboclawNode:
                 if cnts1 == cur_enc_val:
                     rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
-                self.rc.SpeedAccelDeccelPositionM1(address,accel1,speed1,deccel1,cnts1,buf)
-                rospy.loginfo(f'Writing {cnts1}')
+                self.rc.SpeedAccelDeccelPositionM1(address,accel1,speed1,deccel1,cnts1,buf) # flagged movement
+                rospy.loginfo(f'Writing cnts1 {cnts1}')
             elif channel == 2:
                 # get current encoder val
                 cur_enc_val = self.rc.ReadEncM2(address)[1]
                 cur_angle = ((cur_enc_val-cnts_per_rev)/cnts_per_rev) * 2 * pi
-                rospy.loginfo(f'Motor {i} {cur_enc_val}')
+                rospy.loginfo(f'Roboclaw {address} Motor {i} {cur_enc_val}')
                 # populate telemetry message
                 telem_msg.angle[i] = cur_angle
                 cnts2 = self.rads_to_enc_cnts(cnts_per_rev, rads)
@@ -145,8 +150,8 @@ class RoboclawNode:
                 if cnts2 == cur_enc_val:
                     rospy.loginfo(f'{cnts1} == {cur_enc_val}')
                     continue # dont need to write val if motor is already there
-                rospy.loginfo(f'Writing {cnts2}')
-                self.rc.SpeedAccelDeccelPositionM2(address,accel2,speed2,deccel2,cnts2,buf)
+                rospy.loginfo(f'Writing cnts2 {cnts2}')
+                self.rc.SpeedAccelDeccelPositionM2(address,accel2,speed2,deccel2,cnts2,buf) # flagged movement
             else:
                 rospy.loginfo(rospy.get_caller_id() + "Invalid motor channel: " + channel)
                 return  
