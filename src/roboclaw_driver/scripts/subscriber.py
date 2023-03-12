@@ -104,7 +104,7 @@ class RoboclawNode:
 
     def callback(self, data):
         if data.position_rads[self.num_joints - 1] < 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
-            actuate_claw()
+            self.actuate_claw()
             # print("Actuating Claw...")
             # self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
             # time.sleep(1)
@@ -115,7 +115,7 @@ class RoboclawNode:
         elif data.position_rads[self.num_joints - 1] > 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Rotating Claw...")
             if (self.claw_status == 1):
-                actuate_claw()
+                self.actuate_claw()
             radian_angle = data.position_rads[self.num_joints - 1] # radian_angle is the intended position the claw needs to rotate to
 
             # due to the mechanism of the claw, it cannot be rotated backwards -- it 
