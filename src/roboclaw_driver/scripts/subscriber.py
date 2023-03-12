@@ -117,21 +117,27 @@ class RoboclawNode:
             if (self.claw_status == 1):
                 self.actuate_claw()
             radian_angle = data.position_rads[self.num_joints - 1] # radian_angle is the intended position the claw needs to rotate to
-
+            print(f"radian angle: {radian_angle}")
             # due to the mechanism of the claw, it cannot be rotated backwards -- it 
             # can only move forward. So, if the new angle passed is less than the angle that was
             # previously passed in, the claw must rotate to home position (0 radians) and then move
             # forward from home to the passed in radian_angle.
             if (radian_angle < self.claw_pos):
-                encoder_counts = self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), 6.28319 - self.claw_pos + radian_angle)
-                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, -1*encoder_counts, 1)
+                encoder_counts = -1*self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), 6.28319 - self.claw_pos + radian_angle)
+                print(f"move attempt: {self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, encoder_counts, 1)}")
+                time.sleep(1)
+                print(f"actual loc of claw: {self.rc.ReadEncM1(129)}")
                 time.sleep(1)
                 self.claw_pos = radian_angle
+                print(f"after rotation enc counts: {encoder_counts}, claw pos: {self.claw_pos}")
             elif (radian_angle >= self.claw_pos):
-                encoder_counts = self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), radian_angle - self.claw_pos)
-                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, -1*encoder_counts, 1)
+                encoder_counts = -1*self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), radian_angle - self.claw_pos)
+                print(f"move attempt: {self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, encoder_counts, 1)}")
+                time.sleep(1)
+                print(f"actual loc of claw: {self.rc.ReadEncM1(129)}")
                 time.sleep(1)
                 self.claw_pos = radian_angle
+                print(f"after rotation enc counts: {encoder_counts}, claw pos: {self.claw_pos}")
             self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
             return
 
