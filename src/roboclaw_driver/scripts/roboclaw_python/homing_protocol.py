@@ -163,134 +163,107 @@ def solid_move_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 
 
 def home_base_setup_run(rc):
-
+    """OBJECTIVE: Will make necessary function calls to set up the base for roboclaw
+    limit switch options and then run the code to home the base"""
     # To ensure s4 settings are correct, they are manually 
     # configured in code below
-    n=0
 
     # setting s4 to default: off
-    rc.SetPinFunctions(ROBOCLAW_1, 0, 0, 0)
+    rc.SetPinFunctions(BASE_ADDR, 0, 0, 0)
     time.sleep(1)
-    # rc.SetPinFunctions(ROBOCLAW_2, 0, 0, 0)
-    # time.sleep(1)
 
     # setting s4 to setting motor home (user)
-    rc.SetPinFunctions(ROBOCLAW_1, 0, 0x62, 0)
-    print("s4 set to 0x62 for ROBOCLAW 1")
+    rc.SetPinFunctions(BASE_ADDR, 0, 0x62, 0)
     time.sleep(1)
-
-    # rc.SetPinFunctions(ROBOCLAW_2, 0, 0x62, 0)
-    # print("s4 set to 0x62 for ROBOCLAW 2")
-    # time.sleep(2)
 
     # check if in homed state by reading status of all pins 
     # (using ReadError function from roboclaw library) and then
     # doing a bitwise AND with the value desired (in this case 0x400000)
-    homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
-    # homed_claw = ((rc.ReadError(ROBOCLAW_2)[1] & 0x400000) == 0x400000)
+    homed_base = ((rc.ReadError(BASE_ADDR)[1] & 0x400000) == 0x400000)
 
+    # Call the function that will home the base
     home_base(homed_base, rc)
     print("BASE HOMED!!")
-
-    # home_claw(homed_claw, rc)
-    # print("CLAW HOMED")
 
     return 0
 
 def home_claw_setup_run(rc):
-
+    """OBJECTIVE: Will make necessary function calls to set up the claw for roboclaw
+    limit switch options and then run the code to home the claw"""
     # To ensure s4 settings are correct, they are manually 
     # configured in code below
-    n=0
 
     # setting s4 to default: off
-    # rc.SetPinFunctions(ROBOCLAW_1, 0, 0, 0)
-    # time.sleep(1)
-    rc.SetPinFunctions(ROBOCLAW_2, 0, 0, 0)
+    rc.SetPinFunctions(CLAW_ADDR, 0, 0, 0)
     time.sleep(1)
 
     # setting s4 to setting motor home (user)
-    # rc.SetPinFunctions(ROBOCLAW_1, 0, 0x62, 0)
-    # print("s4 set to 0x62 for ROBOCLAW 1")
-    # time.sleep(1)
-
-    rc.SetPinFunctions(ROBOCLAW_2, 0, 0x62, 0)
-    print("s4 set to 0x62 for ROBOCLAW 2")
+    rc.SetPinFunctions(CLAW_ADDR, 0, 0x62, 0)
     time.sleep(2)
 
     # check if in homed state by reading status of all pins 
     # (using ReadError function from roboclaw library) and then
     # doing a bitwise AND with the value desired (in this case 0x400000)
-    # homed_base = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
-    homed_claw = ((rc.ReadError(ROBOCLAW_2)[1] & 0x400000) == 0x400000)
+    homed_claw = ((rc.ReadError(CLAW_ADDR)[1] & 0x400000) == 0x400000)
 
     # Rotating claw maximum 4 full rotations for homing
-    # print("homing")
     homing_length = 4 * -230
-    # rc.SpeedAccelDistanceM1(ROBOCLAW_2,0,40,homing_length,0)
-    rc.SpeedAccelDeccelPositionM1(ROBOCLAW_2,0,100,0,homing_length,1)
+    rc.SpeedAccelDeccelPositionM1(CLAW_ADDR,0,100,0,homing_length,1)
     time.sleep(2)
-    # print("homed before 360")
 
+    # call the function to home the claw
     home_claw(homed_claw, rc)
     print("CLAW HOMED")
 
-    rc.SetPinFunctions(ROBOCLAW_2, 0, 0, 0)
+    rc.SetPinFunctions(CLAW_ADDR, 0, 0, 0)
     time.sleep(1)
-    
-
 
     return 0
 
 def home_base(homed, rc):
+    """OBJECTIVE: Will run through procedure to home the base"""
     val = 0
     speed = 50 ; accel = 0; deccel = 0
     step = 100
-    prev_pos = rc.ReadEncM1(ROBOCLAW_1)[1]
+    prev_pos = rc.ReadEncM1(BASE_ADDR)[1]
 
     while (homed != True):
         # determine new position toward home
         val -= step
         print(val)
         # move to new position
-        ran = rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
+        rc.SpeedAccelDeccelPositionM1(BASE_ADDR, accel, speed, deccel, val, 1)
         time.sleep(3)
         
         # read in new position after move
-        move_vals = rc.ReadEncM1(ROBOCLAW_1)
-        status = move_vals[0]
-        cur_pos = move_vals[1]
-        print(f"status: {status}, ran: {ran}")
+        cur_pos = rc.ReadEncM1(BASE_ADDR)[1]
         print(f"prev_pos: {prev_pos}, cur_pos: {cur_pos}")
         
         #check if hall effect sensor hit
-        homed = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)
+        homed = ((rc.ReadError(BASE_ADDR)[1] & 0x400000) == 0x400000)
 
         if homed:
             break
         else:
             # Home not hit and read yet
-            # fail-safe
+            # we have entered fail-safe
             if (abs(cur_pos - prev_pos) < (step * 0.9)):
                 # arm could be breaking / Hall effect missed
-                rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, 50, deccel, cur_pos + 500, 1)
+                rc.SpeedAccelDeccelPositionM1(BASE_ADDR, accel, 50, deccel, cur_pos + 500, 1)
                 val = cur_pos + 500
                 print("\n\n**********\nBASE MISSED HALL EFFECT\n**********\n")
                 time.sleep(10)
 
-
         prev_pos = cur_pos
-
-        # time.sleep(1)
 
     return 0
 
 
 def home_claw(homed, rc):
-
+    """OBJECTIVE: Will run through procedure to home the claw"""
     while(homed != True):
         # check pins
-        err = rc.ReadError(ROBOCLAW_2)
+        err = rc.ReadError(CLAW_ADDR)
         # if s4 pin high, exit loop
         if ((err[1] & 0x400000) == 0x400000):
             break
@@ -309,7 +282,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
 #   First attempt at homing
     secondStop = 0
     while not (trueHome):
-        stepBack = (-1 * encoderVal * 5)
+        stepBack = (-1 * encoderVal * 10)
 #       the ammount the arm will step back before attempting the homing again
         turn_by_encoder(rc, address, motorNum, stepBack, TEST_SPEED, 1, 0.75)
 
@@ -327,7 +300,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal):
             firstStop = secondStop
     
 #   Step back after finding home
-    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 6), TEST_SPEED, 1, 0.75)
+    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 2), TEST_SPEED, 1, 0.75)
    
 
 

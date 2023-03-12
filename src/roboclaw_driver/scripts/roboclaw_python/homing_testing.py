@@ -20,7 +20,7 @@ import time
 
 # BASE Motor info
 BASE_ADDR = 128
-BASE_MOTOR = 2
+BASE_MOTOR = 1
 BASE_FULLROT = 15000
 # Number of encoder values to make on full rotation
 BASE_SPEED = 50
@@ -34,7 +34,7 @@ ELBOW_FULLROT = 3250
 # Number of encoder values to make on full rotation
 ELBOW_ENC_DEG = 9
 # Amount and direction the homing will step the wrist per move
-ELBOW_ENC_BREAK = 6
+ELBOW_ENC_BREAK = 7
 # The max encoder values that will cause a home detection for the ELBOW 
 ELBOW_SPEED = 40
 # Speed of ELBOW while homing
@@ -108,7 +108,7 @@ def basic_testing(rc):
 #   Turn Claw 90 degrees to fit
     turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, CLAW_BACKWARD_FULLROT//4, CLAW_SPEED, 1, 1)
 #   Moving wrist to actual home at end
-    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2 - 20, WRIST_SPEED, 1, 3)
+    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 80, 1, 3)
 
 
 def full_testing(rc):
