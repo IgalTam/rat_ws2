@@ -66,13 +66,6 @@ CLAW_SPEED = 100
 # Speed of CLAW while homing
 
 
-def kill_all_motors(rc):
-#   Should only be used in urgent situations will stop the movement of the whole arm
-    turn_by_encoder(rc, BASE_ADDR, BASE_MOTOR, 0, BASE_SPEED, 0, 0.1)
-    turn_by_encoder(rc, ELBOW_ADDR, ELBOW_MOTOR, 0, ELBOW_SPEED, 0, 0.1)
-    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, 0, WRIST_SPEED, 0, 0.1)
-    turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, 0, CLAW_SPEED, 0, 0.1)
-
 
 def test_setup(rc: Roboclaw):
     while(input("Want to change an arm starting position? y/n\n") == "y"):
@@ -96,20 +89,6 @@ def test_setup(rc: Roboclaw):
         
     print("SetUp complete\nMoving into normal testing\n\n")
 
-def basic_testing(rc):
-#   Wrist Homing
-    double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_ENC_DEG, WRIST_ENC_BREAK)
-#   Base homing
-    home_base_setup_run(rc)
-#   Elbow Homing
-    double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, ELBOW_ENC_DEG, ELBOW_ENC_BREAK)
-#   Claw Homing
-    home_claw_setup_run(rc)
-#   Turn Claw 90 degrees to fit
-    turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, CLAW_BACKWARD_FULLROT//4, CLAW_SPEED, 1, 1)
-#   Moving wrist to actual home at end
-    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 80, 1, 3)
-
 
 def full_testing(rc):
 #   Program will run the homing protocol a given number of time as specified below
@@ -125,18 +104,6 @@ def full_testing(rc):
     except KeyboardInterrupt:
         print("FORCED OUT OF TESTING LOOP\n")
         kill_all_motors(rc)
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -190,7 +157,7 @@ def test_main(rc):
 #           CASE: Run a single homing run
             print("\n#################\nSINGLE HOMING\n#################")
             if(input("\nARM WILL TRY TO FIND HOME, confirm? y/n\n\n") == "y"):
-                basic_testing(rc)
+                homing_procedure(rc)
         elif(menuNav == 3):
 #               CASE: Run full testing procedure to test accuracy of arm
             print("\n##############\nHOMING TESTING\n##############")
