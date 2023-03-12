@@ -7,3 +7,4 @@ src/rat_control/src/scripts/roboclaw_python/
 src/q
 src/roboclaw_driver/scripts/.joint_config.ini.swp
 .git-old-0/
+install/
