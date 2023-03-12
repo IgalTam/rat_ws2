@@ -32,7 +32,9 @@ def updateMotorPos(address, accel, speed, deccel, motor):
 
 def angleToEncoders(address, motor, angle):
     if (address == ROBOCLAW_1):
-        if (motor == 1):
+        if (motor == 2):
+            return (angle * ELBOW_FULLROT) // FULLROT
+        elif (motor == 1):
             return (angle * BASE_FULLROT) // FULLROT
         elif (motor == 2):
             return (angle * ELBOW_FULLROT) // FULLROT
