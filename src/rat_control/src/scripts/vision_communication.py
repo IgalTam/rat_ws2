@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 import time
 import math
 import threading
@@ -30,19 +29,11 @@ class VisionCommunication:
         self.mgi = MoveGroupInterface()
         self.bus = I2CBus()
 
-        # self.i2cBus = main()
-        pass
-
     def send_i2c_cmd(self):
         """I2C communication with the Vision team's Jetson Nano to the Arm team's
         Raspberry Pi."""
 
-        # bus = I2CBus()
-
-        # test writing a command to get cordinates
-        # bus.write_pkt(b'cord', 'c', 0)
-
-        # wait for response
+        # Wait for response
         while True:
             pkt = self.bus.wait_response()
             
@@ -60,7 +51,7 @@ class VisionCommunication:
             
     def i2c_image(self):
         """reads and saves image file sent over I2C"""
-        # bus = I2CBus()
+
         data = self.bus.read_file()
     
     def vision_system(self):
@@ -75,28 +66,6 @@ class VisionCommunication:
         - z -         Height Coordinate (cm)
         - theta -     Angle of the test tube (degrees)
         """
-
-        # Power up vision system
-        # Vision.Jetson.power_on();
-
-        # Start vision system pipeline
-        # Vision.Jetson.power_start();
-
-        # Wait 30 seconds for Vision System to Send Data
-        # time.sleep(30)
-
-        # Power up vision system
-        # Vision.Jetson.get_depth_image();
-
-        # Get Data from vision system
-        # Vision.Jetson.get_object(data_packets);
-
-        # Stop vision system pipeline
-        # Vision.Jetson.power_stop();
-
-        # Power down vision system
-        # Vision.Jetson.power_off();
-
         
         while True:
             data_packets = self.send_i2c_cmd()
@@ -123,6 +92,28 @@ class VisionCommunication:
         self.position_set(y, z, theta)
 
         # return x, y, z, theta
+    
+    def vision_power_on(self):
+        """Power on the vision system."""
+
+        # Power up vision system
+        # Vision.Jetson.power_on();
+
+        # Start vision system pipeline
+        # Vision.Jetson.power_start();
+
+        pass
+
+    def vision_power_off(self):
+        """Power off the vision system."""
+
+        # Stop vision system pipeline
+        # Vision.Jetson.power_stop();
+
+        # Power down vision system
+        # Vision.Jetson.power_off();
+
+        pass
 
     def horizontal_view(self, x, y):
         """If x is not zero (x = 0 means arm is directly in front of sample tube),
@@ -133,12 +124,16 @@ class VisionCommunication:
 
             if x > 0:
                 # Turning Left
-                pass
+                turnDirection = 'Left'
             elif x < 0:
                 # Turning Right
+                turnDirection = 'Right'
                 x = abs(x)
             
             turnAngle = math.asin(x / y)
+
+            print(f"Turn {turnAngle} degrees to the {turnDirection}")
+            
             # Call function to calculate angle
             # Tank Turn Function:
             # rov.do_tank_turn(angle)
@@ -155,6 +150,8 @@ class VisionCommunication:
 
             # Calculate distance for going forward
             move_distance = ((y - self.maxDistanceArm) + self.maxDistanceArm) / 2
+
+            print(f"Move forward {move_distance} cm")
             
             # Call function to move rover forward
             # rov.move_forward(move_distance)
@@ -167,18 +164,16 @@ class VisionCommunication:
         the vision system to obtain new data packets. Otherwise, send y, z, and 
         theta values to ROS."""
 
-        # if (self.xFlag) or (self.zFlag):
+        if (self.xFlag) or (self.zFlag):
             # Power back on vision system
-            # self.vision_system()
+            self.vision_system()
         
-        # else:
+        else:
             # Functionality for interfacing with ROS:
             # Send y, z, and theta into ROS
-        self.mgi.actuate_claw()          # open/close claw
-        self.mgi.rotate_claw(theta)      # rotate claw
-        self.mgi.vision_to_moveit(y, z)  # move to coordinate location (270-315 deg. angle of approach)
-
-        # print(f"data received at end: y {y} z {z} theta {theta}")
+            self.mgi.actuate_claw()          # open/close claw
+            self.mgi.rotate_claw(theta)      # rotate claw
+            self.mgi.vision_to_moveit(y, z)  # move to coordinate location (270-315 deg. angle of approach)
 
     def main(self):
         """Vision System Interface"""
@@ -246,17 +241,3 @@ if __name__ == "__main__":
     vc.vision_system()
     
     # vc.main()
-
-    # zflag = None
-    # vc = VisionCommunication()
-    # vc.distance_view(0, zflag)
-    # print(zflag)
-
-    # data_packets = "x12.5y13z15a120"
-
-    # x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
-    # y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')])
-    # z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')])
-    # theta: int = int(data_packets[data_packets.index('a') + 1: ])
-
-    # print(f"Data:\n {x}, {y}, {z}, {theta}")
