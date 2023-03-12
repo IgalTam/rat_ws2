@@ -97,12 +97,14 @@ def test_setup(rc: Roboclaw):
     print("SetUp complete\nMoving into normal testing\n\n")
 
 def basic_testing(rc):
-#   Base homing
-    home_base_setup_run(rc)
 #   Wrist Homing
     double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_ENC_DEG, WRIST_ENC_BREAK)
+#   Base homing
+    home_base_setup_run(rc)
 #   Elbow Homing
     double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, ELBOW_ENC_DEG, ELBOW_ENC_BREAK)
+#   Claw Homing
+    home_claw_setup_run(rc)
 
 
 def full_testing(rc):
