@@ -21,6 +21,13 @@ sys.path.insert(0, "/home/pi/goscout/Rover/src/rover")
 class VisionCommunication:
     """Communication and Commands for Arm-Vision Rover"""
 
+    # Default Coordinates to move the arm back to the original position
+    DEFAULT_X = 0
+    DEFAULT_Y = 0
+    DEFAULT_Z = 0
+    DEFAULT_THETA = 0
+
+    # Preset Coordinates after claw picks up tube
     PRESET_Y = 5
     PRESET_Z = 25
 
@@ -197,7 +204,12 @@ class VisionCommunication:
         """Moves the sample tube when in the rover's arm."""
 
         self.mgi.vision_to_moveit(self.PRESET_Y, self.PRESET_Z)  # move to coordinate location (270-315 deg. angle of approach)
+    
+    def reset_arm(self):
+        """Resets the rover's arm to its original position."""
 
+        self.mgi.rotate_claw(self.DEFAULT_THETA)
+        self.mgi.vision_to_moveit(self.DEFAULT_Y, self.DEFAULT_Z)
     
     def verify_pickup(self):
         """Verifies that the rover has picked up the sample tube."""
@@ -262,7 +274,11 @@ class VisionCommunication:
                         command = False
             else:
                 command = False
-                
+
+        print('\nResetting Arm Position...')
+        
+        self.reset_arm()
+        
         print("\n***** Logging Off *****")
 
 if __name__ == "__main__":
