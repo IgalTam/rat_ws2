@@ -117,7 +117,8 @@ class RoboclawNode:
             return
         elif data.position_rads[self.num_joints - 1] > 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Rotating Claw...")
-            if (self.claw_status == 1): # check if claw is open. If so, close for rotation
+            started_open = self.claw_status
+            if (started_open == 1): # check if claw is open. If so, close for rotation
                 self.actuate_claw()
             radian_angle = data.position_rads[self.num_joints - 1] # radian_angle is the intended position the claw needs to rotate to
             print(f"radian angle: {radian_angle}")
@@ -143,6 +144,8 @@ class RoboclawNode:
                 self.claw_pos = radian_angle
                 print(f"after rotation enc counts: {encoder_counts}, claw pos: {self.claw_pos}")
             self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
+            if (started_open == 1):
+                self.actuate_claw()
             return
 
         # # upon getting a msg, check if previous msg is the same
