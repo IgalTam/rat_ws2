@@ -38,6 +38,7 @@ class VisionCommunication:
         self.previousCord = None
         self.tubeFlag = False
         self.looped = False
+        self.firstPickUp = False
 
         self.mgi = MoveGroupInterface()
         self.bus = I2CBus()
@@ -51,6 +52,9 @@ class VisionCommunication:
             pkt = self.bus.wait_response()
             
             if not pkt:
+                if self.firstPickUp is True:
+                    self.tubeFlag = True
+                    self.firstPickUp = False
                 continue
 
             if(pkt[I2CPacket.id_index].decode() != self.bus.pkt_targ_id) or (pkt[I2CPacket.stat_index] != b'd'):
@@ -62,8 +66,8 @@ class VisionCommunication:
             if data is not None:
                 print(data)
 
-                if (self.previousCord is not None and self.previousCord == data):
-                    self.tubeFlag = True
+                # if (self.previousCord is not None and self.previousCord == data):
+                #     self.tubeFlag = True
                 
                 self.previousCord = data
 
@@ -278,6 +282,8 @@ class VisionCommunication:
                 if a5 == 'y' or a5 == 'Y':
                     print('\nMoving Arm...')
                     self.position_set(data_packets[1], data_packets[2], data_packets[3])
+
+                    self.firstPickUp = True
 
                     a6 = input('\nWould you like to use check if the tube was picked up? '
                             '(Type y or n): ')
