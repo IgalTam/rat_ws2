@@ -5,9 +5,8 @@ from math import pi, tau, fabs, cos
 # BASE_TO_ELBOW = 0.235 
 # ELBOW_TO_WRIST = 0.2695
 # WRIST_TO_EEF = 0.193
-# import warnings
 
-# link lengths in centimeters
+# link lengths in CENTIMETERS
 BASE_TO_ELBOW = 23.5 
 ELBOW_TO_WRIST = 26.95
 WRIST_TO_EEF = 19.3

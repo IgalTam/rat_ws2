@@ -17,6 +17,15 @@ from moveit_commander.conversions import pose_to_list
 from roboclaw_python.roboclaw_3 import Roboclaw # for actuating claw, as rollmotor is NOT in urdf and not visible to moveit
 
 
+BASE_MIN = 0
+BASE_MAX = -3.92699
+
+ELBOW_MIN = 0
+ELBOW_MAX = -3.92699
+
+WRIST_MIN = -3.14159
+WRIST_MAX = 0.785398
+
 
 """
 pose.position:
@@ -108,14 +117,25 @@ class MoveGroupInterface(object):
         msg.speed = [0, 0, 0, 0]
         msg.accel_deccel = [0, 0, 0, 0]
         self.cmd_pub.publish(msg)
+    
+    def position_claw(self, angle_rad: int):
+        """rotate claw motor to input angle"""
+        msg = armCmd()
+        msg.position_rads = [0, 0, 0, angle_rad]
+        msg.speed = [0, 0, 0, 0]
+        msg.accel_deccel = [0, 0, 0, 0]
+        self.cmd_pub.publish(msg)
+        # UNFINISHED
         
     def go_to_joint_goal(self, joint_angles:list):
         """sends joint solution angle list to moveit node"""
         self.move_group.set_joint_value_target({"base_joint": joint_angles[0],
                                                  "elbow_joint":joint_angles[1],
                                                  "wrist_joint":joint_angles[2]})
+
         ## Now, we call the planner to compute the plan and execute it.
         plan = self.move_group.go(wait=True)
+        # print(f"output of move: {plan} type: {type(plan)}")
         # Calling `stop()` ensures that there is no residual movement
         self.move_group.stop()
     
@@ -221,7 +241,7 @@ def main_interactive():
 def main_cmd(x=None, z=None, phi_range=None, claw=None, fk=None):
     print(f'x:{x}, z:{z}, claw:{claw}')
     # if not(x and z):
-    #     print("Must provide BOTH X and Z values!")
+    #     print("Must provide BOTH X and Z values!") (phi_low, phi_hi) phi_low < phi < phi_hi
     #     return
     print("Connecting to Moveit...")
     arm_interface = MoveGroupInterface(silent=True)
@@ -234,6 +254,21 @@ def main_cmd(x=None, z=None, phi_range=None, claw=None, fk=None):
         forwardKinematics(cur_joint_vals)
     else:
         joint_solution_angles, _ = inverseKinematics(x, z, phi_lo=phi_range[0], phi_hi=phi_range[1])
+        if (joint_solution_angles[1] > BASE_MIN):
+                joint_solution_angles[1] = BASE_MIN
+        if (joint_solution_angles[1] < BASE_MAX):
+                joint_solution_angles[1] = BASE_MAX
+        
+        if (joint_solution_angles[2] > ELBOW_MIN):
+                joint_solution_angles[2] = ELBOW_MIN
+        if (joint_solution_angles[2] < ELBOW_MAX):
+                joint_solution_angles[2] = ELBOW_MAX
+
+        if (joint_solution_angles[3] < WRIST_MIN):
+                joint_solution_angles[3] = WRIST_MIN
+        if (joint_solution_angles[3] > WRIST_MAX):
+                joint_solution_angles[3] = WRIST_MAX
+
         print(arm_interface.move_group.get_current_joint_values())
         if not joint_solution_angles:
             print("No solution found exiting...")
@@ -241,7 +276,11 @@ def main_cmd(x=None, z=None, phi_range=None, claw=None, fk=None):
         arm_interface.go_to_joint_goal(joint_solution_angles)
 
 
+def nuada_demo():
+    """demo function for DBT1"""
+    pass
     
+
 if __name__ == "__main__":
     parser = ap.ArgumentParser()
     subparsers = parser.add_subparsers(dest='subcommand')
@@ -249,12 +288,19 @@ if __name__ == "__main__":
     parser_fk = subparsers.add_parser('fwd_kin')
     parser_ik = subparsers.add_parser('inv_kin')
     parser_int = subparsers.add_parser('interactive')
+    parser_nu = subparsers.add_parser('nuada_main')
+
     parser_ik.add_argument('-x', type=float, required=True, help='X coordinate in meters')
     parser_ik.add_argument('-z', type=float, required=True, help='Z coordinate in meters')
     parser_ik.add_argument('--phi_range', type=int, nargs=2, required=True, help='range of angles for end effector orientation (degrees), angle is relative to x-axis')
     parser_ik.add_argument('--angle', type=float, required=False, help='Angle of end effector relative to x-axis')
-
     parser_ik.add_argument('--claw', action='store_true', required=False, help='print forward kinematics matrix of current joint values')
+
+    parser_nu.add_argument('-x', type=float, required=True, help='X coordinate in meters')
+    parser_nu.add_argument('-z', type=float, required=True, help='Z coordinate in meters')
+    parser_nu.add_argument('--phi_range', type=int, nargs=2, required=True, help='range of angles for end effector orientation (degrees), angle is relative to x-axis')
+    parser_nu.add_argument('--claw', type=float, required=False, help='Angle of end effector relative to x-axis')
+    
     #parser_ik.add_argument('--interactive', action='store_true', required=False, help='run program in interactive mode')
     #print(parser.parse_args())
 

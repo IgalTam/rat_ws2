@@ -15,6 +15,7 @@ git checkout <name of branch>
 Commit and push your work for that issue onto the issue-specific branch.
 
 ### Using the GitHub Project
+##### [NOTE: This feature was not used during the Nuada Capstone development cycle, but may be useful for future teams]<br />
 To better communicate task/issue allocation and progress, please include your task as an item in the Nuada GitHub Project. Task items should be formatted as follows:<br />
 
 1) Required attributes:<br />
