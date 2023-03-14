@@ -108,7 +108,7 @@ class MoveGroupInterface(object):
         msg.accel_deccel = [0, 0, 0, 0]
         self.cmd_pub.publish(msg)
     
-    def position_claw(self, angle_rad: int):
+    def position_claw(self, angle_rad: float):
         """rotate claw motor to input angle"""
         msg = armCmd()
         msg.position_rads = [0, 0, 0, angle_rad]
@@ -169,6 +169,14 @@ def main_interactive():
             claw = input("open/close claw? (yes/n): ")
             if claw == "yes":
                 interface.actuate_claw()
+                continue
+            if input("rotate claw? (yes/n): ") == "yes":
+                claw_angle = input("input desired angle (positive integer, in degrees) > ")
+                if claw_angle.isdigit() and int(claw_angle) >= 0:
+                    interface.position_claw(float(int(claw_angle) * np.pi) / 180)
+                    print(f"claw sent to {claw_angle} degrees")
+                else:
+                    print(f"desired angle {claw_angle} is invalid, skipping...")
                 continue
             new_x = input("x: ")
             new_z = input("z: ")

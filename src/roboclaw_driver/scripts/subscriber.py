@@ -25,6 +25,12 @@ class RoboclawNode:
     old_data.position_rads = [0, 0, 0, 1.57]
     writtendata = armCmd()
     writtendata.position_rads = [0, 0, 0, 1.57]
+    claw_pos = 0
+
+    # Note: we are working under the assumption that the claw will be closed at startup/after homing
+    # 0 means closed, 1 means open
+    claw_status = 0   
+    
 
     same_msg_cnt = 0
     def rads_to_enc_cnts(self, cnts_per_rev, rads):
@@ -85,31 +91,54 @@ class RoboclawNode:
                 print(f'motor {joint_idx} limited to {data_arr[joint_idx]}')
         return data_arr
 
+    def actuate_claw(self):
+        """this function actuates the claw, either opens or closes the claw
+        and toggles a bit to indicate whether the """
+        print("Actuating Claw...")
+        self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
+        time.sleep(1)
+        self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
+        self.claw_status += 1
+        self.claw_status = self.claw_status % 2
+        
+
     def callback(self, data):
-        if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
-            print("Actuating Claw...")
-            self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
-            time.sleep(1)
-            self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
+        if data.position_rads[self.num_joints - 1] < 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+            self.actuate_claw()
+            # print("Actuating Claw...")
+            # self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
+            # time.sleep(1)
+            # self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
+            # self.claw_status += 1
+            # self.claw_status = self.claw_status % 2
             return
         elif data.position_rads[self.num_joints - 1] > 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Rotating Claw...")
+            if (self.claw_status == 1): # check if claw is open. If so, close for rotation
+                self.actuate_claw()
             radian_angle = data.position_rads[self.num_joints - 1] # radian_angle is the intended position the claw needs to rotate to
-
+            print(f"radian angle: {radian_angle}")
             # due to the mechanism of the claw, it cannot be rotated backwards -- it 
             # can only move forward. So, if the new angle passed is less than the angle that was
             # previously passed in, the claw must rotate to home position (0 radians) and then move
             # forward from home to the passed in radian_angle.
             if (radian_angle < self.claw_pos):
-                encoder_counts = self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), 6.28319 - self.claw_pos + radian_angle)
-                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, -1*encoder_counts, 1)
+                #claw isn't centered like other joints, so we subtract the centering offset from the value returned from the base function
+                encoder_counts = -1*(self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), 6.28319 - self.claw_pos + radian_angle)-int(self.joint_cnts_per_rev[self.num_joints - 1]))
+                print(f"move attempt: {self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, encoder_counts, 1)}")
+                time.sleep(1)
+                print(f"actual loc of claw: {self.rc.ReadEncM1(129)}")
                 time.sleep(1)
                 self.claw_pos = radian_angle
+                print(f"after rotation enc counts: {encoder_counts}, claw pos: {self.claw_pos}")
             elif (radian_angle >= self.claw_pos):
-                encoder_counts = self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), radian_angle - self.claw_pos)
-                self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, -1*encoder_counts, 1)
+                encoder_counts = -1*(self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), radian_angle - self.claw_pos)-int(self.joint_cnts_per_rev[self.num_joints - 1]))
+                print(f"move attempt: {self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, encoder_counts, 1)}")
+                time.sleep(1)
+                print(f"actual loc of claw: {self.rc.ReadEncM1(129)}")
                 time.sleep(1)
                 self.claw_pos = radian_angle
+                print(f"after rotation enc counts: {encoder_counts}, claw pos: {self.claw_pos}")
             self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
             return
 
@@ -237,6 +266,10 @@ class RoboclawNode:
         # anonymous=True flag means that rospy will choose a unique
         # name for our 'telemetry' node so that multiple listeners can
         # run simultaneously.
+
+        self.rc.SetPinFunctions(128, 0, 0, 0) # turn off homing pin for base
+        self.rc.SetPinFunctions(129, 0, 0, 0) # turn off homing pin for claw
+
         self.telem_pub = rospy.Publisher('roboclaw_telemetry', ratTelemetry, queue_size=5)
         rospy.init_node('roboclaw_node', anonymous=True)
         rospy.Subscriber('roboclaw_cmd', armCmd, self.callback, queue_size=256, buff_size=128)
