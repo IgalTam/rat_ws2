@@ -31,6 +31,10 @@ class VisionCommunication:
     PRESET_Y = 5
     PRESET_Z = 25
 
+    # Coordinate Offsets
+    Y_OFF = 6.9
+    Z_OFF = 24.2
+
     def __init__(self):
         self.xFlag = False
         self.zFlag = False
@@ -74,7 +78,7 @@ class VisionCommunication:
 
         data = self.bus.read_file()
     
-    def vision_ready(self, data_packets):
+    def vision_ready(self):
         """Checks to see if the vision system is ready to receive commands."""
 
         while True:
@@ -98,8 +102,6 @@ class VisionCommunication:
         - z -         Height Coordinate (cm)
         - theta -     Angle of the test tube (degrees)
         """
-        
-        self.vision_ready()
 
         data_packets = self.send_i2c_cmd()
 
@@ -107,8 +109,8 @@ class VisionCommunication:
         # data_packets = "x12y13z15a120"
 
         x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
-        y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')]) - 6.9
-        z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')]) - 18.2
+        y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')]) - self.Y_OFF
+        z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')]) - self.Z_OFF
         theta = int(float(data_packets[data_packets.index('a') + 1: ]))
 
         print(f"Data:\n {x}, {y}, {z}, {theta}")
@@ -231,6 +233,7 @@ class VisionCommunication:
         """Vision System Interface"""
 
         done = False
+        self.vision_ready()
         
         while True:
             if not self.looped:
