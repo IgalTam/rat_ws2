@@ -37,6 +37,7 @@ class VisionCommunication:
         self.maxDistanceArm = 30
         self.previousCord = None
         self.tubeFlag = False
+        self.looped = False
 
         self.mgi = MoveGroupInterface()
         self.bus = I2CBus()
@@ -155,7 +156,7 @@ class VisionCommunication:
                 turnDirection = 'Right'
                 x = abs(x)
             
-            turnAngle = math.asin(x / y)
+            turnAngle = math.degrees(math.atan(x / y))
 
             print(f"Turn {turnAngle} degrees to the {turnDirection}")
             
@@ -174,7 +175,8 @@ class VisionCommunication:
             self.zFlag = True
 
             # Calculate distance for going forward
-            move_distance = ((y - self.maxDistanceArm) + self.maxDistanceArm) / 2
+            move_distance = y - self.maxDistanceArm
+            move_distance = ((move_distance + y) / 2)
 
             print(f"Move forward {move_distance} cm")
             
@@ -189,7 +191,7 @@ class VisionCommunication:
         the vision system to obtain new data packets. Otherwise, send y, z, and 
         theta values to ROS."""
 
-        if (self.xFlag) or (self.zFlag):
+        if self.xFlag or self.zFlag:
             # Power back on vision system
             self.vision_system()
         
@@ -214,41 +216,43 @@ class VisionCommunication:
     def verify_pickup(self):
         """Verifies that the rover has picked up the sample tube."""
 
-        if (self.tubeFlag):
+        if self.tubeFlag:
             print("\nSample tube has been picked up.")
             self.tubeFlag = False
 
     def vision_interactive(self):
         """Vision System Interface"""
 
-        command = True
-
-        print ('\n***** Welcome User! *****\n')
+        done = False
         
-        while(command == True):
-            a1 = input('Would you like to use the Vision System? (Type y or n): ')
+        while True:
+            if not self.looped:
+                print ('\n***** Welcome User! *****\n')
+                a1 = input('Would you like to use the Vision System? (Type y or n): ')
+            else:
+                a1 = 'y'
 
-            if (a1 == 'y' or a1 == 'Y'):
-                print('\Using Vision System...')
+            if a1 == 'y' or a1 == 'Y':
+                print('\nUsing Vision System...')
                 data_packets = vc.vision_system()
 
-                if (data_packets[0] != 0):
+                if data_packets[0] != 0:
                     a2 = input('\nThe rover is not facing the sample tube. ' 
                         'Would you like to do a tank turn? (Type y or n): ')
                     
-                    if (a2 == 'y' or a2 == 'Y'):
+                    if a2 == 'y' or a2 == 'Y':
                         print('\nTurning Rover...')
                         self.horizontal_view(data_packets[0], data_packets[1])
                 
-                if (data_packets[2] > self.maxDistanceArm):
+                if data_packets[1] > self.maxDistanceArm:
                     a3 = input('\nThe rover is too far away from the sample tube. ' 
                         'Would you like to move the rover forward? (Type y or n): ')
                     
-                    if (a3 == 'y' or a3 == 'Y'):
+                    if a3 == 'y' or a3 == 'Y':
                         print('\nMoving Rover Forward...')
                         self.distance_view(data_packets[1])
                         
-                if (self.xFlag) or (self.zFlag):
+                if self.xFlag or self.zFlag:
                     a4 = input('\nDetected the rover attempting to do either a '
                            'tank turn or moving forward. Would you like to take another picture '
                            'with the vision system? (Type y or n): ')
@@ -256,33 +260,53 @@ class VisionCommunication:
                     self.xFlag = False
                     self.zFlag = False
                     
-                    if (a4 != 'y' or a4 != 'Y'):
-                        print('help\n')
+                    if a4 == 'y' or a4 == 'Y':
+                        self.looped = True
+                        done = False
+                        break
                 
-                else:
-                    a5 = input('\nWould you like to move the arm to the desired '
-                               'location? (Type y or n): ')
-                    
-                    if (a5 == 'y' or a5 == 'Y'):
-                        print('\nMoving Arm...')
-                        self.position_set(data_packets[2], data_packets[1], data_packets[3])
-                    
-                    a6 = input('\nWould you like to use the vision system again? '
-                               '(Type y or n): ')
-                    
-                    if (a6 != 'y' or a6 != 'Y'):
-                        command = False
-            else:
-                command = False
+                a5 = input('\nWould you like to move the arm to the desired '
+                            'location? (Type y or n): ')
+                
+                if a5 == 'y' or a5 == 'Y':
+                    print('\nMoving Arm...')
+                    self.position_set(data_packets[1], data_packets[2], data_packets[3])
 
-        print('\nResetting Arm Position...')
-        
-        self.reset_arm()
-        
-        print("\n***** Logging Off *****")
+                    a6 = input('\nWould you like to use check if the tube was picked up? '
+                            '(Type y or n): ')
+                    
+                    if a6 == 'y' or a6 == 'Y':
+                        print('\nVerifying Pickup...')
+                        self.move_tube()
+                        self.verify_pickup()
+                
+                a7 = input('\nWould you like to use the vision system again? '
+                            '(Type y or n): ')
+                
+                if a7 == 'y' or a7 == 'Y':
+                    self.looped = True
+                    done = False
+                else:
+                    self.looped = False
+                    done = True
+                    break
+
+            else:
+                done = True
+                break
+
+        if (done):
+            print('\nResetting Arm Position...')
+            
+            self.reset_arm()
+            
+            print("\n***** Logging Off *****")
+
+        else:
+            self.vision_interactive()
 
 if __name__ == "__main__":
 
     vc = VisionCommunication()
 
-    vc.main()
+    vc.vision_interactive()
