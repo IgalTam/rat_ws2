@@ -21,9 +21,9 @@ sys.path.insert(0, "/home/pi/goscout/Rover/src/rover")
 class VisionCommunication:
     """Communication and Commands for Arm-Vision Rover"""
 
-    # Default Coordinates to move the arm back to the original position
+    # Default Coordinates to move the arm close to the original position
     DEFAULT_X = 0
-    DEFAULT_Y = 0
+    DEFAULT_Y = 5
     DEFAULT_Z = 0
     DEFAULT_THETA = 0
 
