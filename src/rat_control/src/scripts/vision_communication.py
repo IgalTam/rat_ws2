@@ -28,11 +28,13 @@ class VisionCommunication:
     DEFAULT_THETA = 0
 
     # Preset Coordinates after claw picks up tube
-    PRESET_Y = 5
-    PRESET_Z = 25
+    PRESET_Y1 = 30
+    PRESET_Z1 = 0
+    PRESET_Y2 = 20
+    PRESET_Z2 = 25
 
     # Coordinate Offsets
-    Y_OFF = 6.9
+    Y_OFF = 7.4
     Z_OFF = 24.2
 
     def __init__(self):
@@ -106,8 +108,9 @@ class VisionCommunication:
         - z -         Height Coordinate (cm)
         - theta -     Angle of the test tube (degrees)
         """
-
-        data_packets = self.send_i2c_cmd()
+        data_packets = None
+        while data_packets is None:
+            data_packets = self.send_i2c_cmd()
 
         # Test
         # data_packets = "x12y13z15a120"
@@ -210,8 +213,8 @@ class VisionCommunication:
     
     def move_tube(self):
         """Moves the sample tube when in the rover's arm."""
-
-        self.mgi.vision_to_moveit(self.PRESET_Y, self.PRESET_Z)  # move to coordinate location (270-315 deg. angle of approach)
+        self.mgi.vision_to_moveit(self.PRESET_Y1, self.PRESET_Z1)  # move to coordinate location (270-315 deg. angle of approach)
+        self.mgi.vision_to_moveit(self.PRESET_Y2, self.PRESET_Z2)  # move to coordinate location (270-315 deg. angle of approach)
     
     def reset_arm(self):
         """Resets the rover's arm to its original position."""
@@ -285,7 +288,7 @@ class VisionCommunication:
                 if a5 == 'y' or a5 == 'Y':
                     print('\nMoving Arm...')
                     self.position_set(data_packets[1], data_packets[2], data_packets[3])
-
+                    self.mgi.actuate_claw() # pick up sample tube
                     self.firstPickUp = True
 
                     a6 = input('\nWould you like to use check if the tube was picked up? '
@@ -294,6 +297,8 @@ class VisionCommunication:
                     if a6 == 'y' or a6 == 'Y':
                         print('\nVerifying Pickup...')
                         self.move_tube()
+                        self.send_i2c_cmd()
+                        time.sleep(60)
                         self.verify_pickup()
                 
                 a7 = input('\nWould you like to use the vision system again? '
@@ -308,7 +313,7 @@ class VisionCommunication:
                     break
 
             else:
-                done = True
+                # done = True
                 break
 
         if (done):

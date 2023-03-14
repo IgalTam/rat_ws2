@@ -10,3 +10,4 @@ src/roboclaw_driver/scripts/.joint_config.ini.swp
 src/roboclaw_driver/scripts/roboclaw_publisher.py
 src/roboclaw_driver/scripts/nuada_subscriber.py
 src/roboclaw_driver/scripts/subscriber_clone.py
+install/
