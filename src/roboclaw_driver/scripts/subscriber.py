@@ -33,7 +33,7 @@ class RoboclawNode:
     
 
     same_msg_cnt = 0
-    def rads_to_enc_cnts(self, cnts_per_rev, rads):
+    def rads_to_enc_cnts(self, cnts_per_rev, rads, centered=True):
         """
         Takes angle in radians and the enocder counts per revolution 
         and converts radians into encoder counts for that motor.
@@ -45,7 +45,10 @@ class RoboclawNode:
             cnts_per_rev(uint): encoder counts equivalent to 0 radians for particular motor
             rads(float): desired angle 
         """
-        return int(cnts_per_rev + (rads * (cnts_per_rev/(2*pi))))
+        if centered:
+            return int(cnts_per_rev + (rads * (cnts_per_rev/(2*pi))))
+        else:
+            return int(rads * (cnts_per_rev/(2*pi)))
 
     def __init__(self):
         
@@ -123,8 +126,8 @@ class RoboclawNode:
             # previously passed in, the claw must rotate to home position (0 radians) and then move
             # forward from home to the passed in radian_angle.
             if (radian_angle < self.claw_pos):
-                #claw isn't centered like other joints, so we subtract the centering offset from the value returned from the base function
-                encoder_counts = -1*(self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), 6.28319 - self.claw_pos + radian_angle)-int(self.joint_cnts_per_rev[self.num_joints - 1]))
+                #claw isn't centered like other joints, so set centered to False to avoid unneccesarry offset
+                encoder_counts = -1*self.rads_to_enc_cnts(int(self.joint_cnts_per_rev[self.num_joints - 1]), 6.28319 - self.claw_pos + radian_angle, False)
                 print(f"move attempt: {self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, encoder_counts, 1)}")
                 time.sleep(1)
                 print(f"actual loc of claw: {self.rc.ReadEncM1(129)}")
@@ -142,14 +145,14 @@ class RoboclawNode:
             self.rc.SetEncM1(int(self.joint_addresses[self.num_joints - 1]), 0) # reset this encoder
             return
 
-        # upon getting a msg, check if previous msg is the same
-        if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
-            self.same_msg_cnt += 1
-        else:
-           # print("new message")
-            self.same_msg_cnt = 0
-            self.old_data = data
-            return
+        # # upon getting a msg, check if previous msg is the same
+        # if self.float_list_cmp(self.old_data.position_rads, data.position_rads):
+        #     self.same_msg_cnt += 1
+        # else:
+        #     print("new message")
+        #     self.same_msg_cnt = 0
+        #     self.old_data = data
+        #     return
 
         # if self.same_msg_cnt > 3: # data has stabilized write it
         #     self.same_msg_cnt = 0
