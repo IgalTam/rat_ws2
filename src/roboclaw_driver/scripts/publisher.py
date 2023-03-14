@@ -8,6 +8,8 @@ def talker():
     rospy.init_node('talker', anonymous=True)
     rate = rospy.Rate(10) # 10hz
     
+    joint_names = ["BASE", "ELBOW", "WRIST", "CLAW"]
+
     while not rospy.is_shutdown():
         msg = armCmd()
         msg.position_rads = [0, 0, 0, 0]
@@ -15,7 +17,7 @@ def talker():
         msg.accel_deccel = [0, 0, 0, 0]
 
         for i in range(0,4):
-            rads= float(input("enter position in radians: "))
+            rads= float(input(f"{joint_names[i]} > enter position in radians: "))
             if rads < -6.283184 or rads > 6.283184:
                 rospy.loginfo("please enter a valid position in radians (0 to 6.283184...)") 
                 continue
