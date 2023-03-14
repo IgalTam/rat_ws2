@@ -116,6 +116,9 @@ def kill_all_motors(rc):
     turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, 0, WRIST_SPEED, 0, 0.1)
     turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, 0, CLAW_SPEED, 0, 0.1)
 
+#   def set_enc_zero(rc):
+#   Used to zero all motors an RAT arm(used at end of homing sequence)
+
 
 def step_till_stop(rc: Roboclaw, address, motorNum, encoderVal, breakVal, speed):
 #   OBJECTIVE: Will rotate on any roboclaw to move given ammount till it reaches a physical stop
@@ -368,9 +371,9 @@ def homing_procedure(rc):
 #   Claw Homing
     home_claw_setup_run(rc)
 #   Turn Claw 90 degrees to fit
-    turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, CLAW_BACKWARD_FULLROT//4, CLAW_SPEED, 1, 1)
+    turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, CLAW_BACKWARD_FULLROT//4, CLAW_SPEED, 1, 3)
 #   Moving wrist to actual home at end
-    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 80, 1, 3)
+    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 80, 1, 5)
 
 
 
@@ -382,7 +385,7 @@ def main():
     rc.Open()
     # print("here\n\n")
     # test_setup(rc)
-    home_base_setup_run(rc)
+    # home_base_setup_run(rc)
     # home_claw_setup_run(rc)
 
     # double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
