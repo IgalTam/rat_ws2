@@ -86,7 +86,7 @@ class RoboclawNode:
         return data_arr
 
     def callback(self, data):
-        if data.position_rads[self.num_joints - 1] != 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
+        if data.position_rads[self.num_joints - 1] < 0: # check if claw needs to be actuated, hacky as urdf does not know about claw
             print("Actuating Claw...")
             self.rc.SpeedAccelDeccelPositionM1(129, 0, 200, 0, 58, 1)
             time.sleep(1)

@@ -24,7 +24,7 @@ class VisionCommunication:
     # Default Coordinates to move the arm close to the original position
     DEFAULT_X = 0
     DEFAULT_Y = 5
-    DEFAULT_Z = 0
+    DEFAULT_Z = -6
     DEFAULT_THETA = 0
 
     # Preset Coordinates after claw picks up tube
@@ -70,7 +70,7 @@ class VisionCommunication:
             data = pkt[I2CPacket.data_index].decode().strip('\0')
             
             if data is not None:
-                print(data)
+                print(f"data: {data}")
 
                 # if (self.previousCord is not None and self.previousCord == data):
                 #     self.tubeFlag = True

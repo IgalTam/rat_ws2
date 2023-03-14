@@ -96,7 +96,7 @@ class MoveGroupInterface(object):
         self.eef_link = eef_link
         self.group_names = group_names
         self.PHI_MIN = 270
-        self.PHI_MAX = 322 # minimum required for use
+        self.PHI_MAX = 315
         self.phi_range = [self.PHI_MIN, self.PHI_MAX]
     
     def actuate_claw(self):
@@ -117,15 +117,6 @@ class MoveGroupInterface(object):
         msg.speed = [0, 0, 0, 0]
         msg.accel_deccel = [0, 0, 0, 0]
         self.cmd_pub.publish(msg)
-    
-    def position_claw(self, angle_rad: int):
-        """rotate claw motor to input angle"""
-        msg = armCmd()
-        msg.position_rads = [0, 0, 0, angle_rad]
-        msg.speed = [0, 0, 0, 0]
-        msg.accel_deccel = [0, 0, 0, 0]
-        self.cmd_pub.publish(msg)
-        # UNFINISHED
         
     def go_to_joint_goal(self, joint_angles:list):
         """sends joint solution angle list to moveit node"""
