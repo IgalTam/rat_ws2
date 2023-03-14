@@ -216,9 +216,16 @@ class VisionCommunication:
     def verify_pickup(self):
         """Verifies that the rover has picked up the sample tube."""
 
-        if self.tubeFlag:
+        # If the vision system can't find the tube in a minute, then there is no tube
+        # data_packets = self.vision_system()
+        # if data_packets[0] == 1000:
+        #     self.tubeFlag = True
+        
+        if self.tubeFlag is True:
             print("\nSample tube has been picked up.")
             self.tubeFlag = False
+        else:
+            print("\nSample tube has not been picked up.")
 
     def vision_interactive(self):
         """Vision System Interface"""
@@ -234,7 +241,7 @@ class VisionCommunication:
 
             if a1 == 'y' or a1 == 'Y':
                 print('\nUsing Vision System...')
-                data_packets = vc.vision_system()
+                data_packets = self.vision_system()
 
                 if data_packets[0] != 0:
                     a2 = input('\nThe rover is not facing the sample tube. ' 
