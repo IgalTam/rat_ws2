@@ -27,8 +27,6 @@ def home_claw(homed):
         # check pins
         err = rc.ReadError(ROBOCLAW_2)
         print(err)
-        print(n)
-        n += 1
         # if s4 pin high, exit loop
         if ((err[1] & 0x400000) == 0x400000):
             break
