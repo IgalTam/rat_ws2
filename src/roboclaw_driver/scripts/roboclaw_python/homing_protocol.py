@@ -8,6 +8,7 @@
 import RPi.GPIO as gpio
 from roboclaw_3 import Roboclaw
 import time
+import sys
 
 """non-ROS homing protocol implementation"""
 
@@ -93,9 +94,9 @@ def turn_by_encoder(rc: Roboclaw, address, motorNum, encoderVal, motorSpd, print
     
     if(printFlag == 1):
 #       CASE: if the print flag is set, main for debugging
-        print("Move Complete \n")
-        print("Expected Distance: ", encoderVal)
-        print("\nActual Distance: ", abs(currentPos - finalPos), "\n\n")
+        print("Move Complete")
+        print("Expected Distance: ", abs(encoderVal))
+        print("Actual Distance: ", abs(currentPos - finalPos), "\n\n")
     
     return finalPos
 
@@ -308,12 +309,12 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal, spe
     while not (trueHome):
         stepBack = (-1 * encoderVal * 10)
 #       the ammount the arm will step back before attempting the homing again
-        turn_by_encoder(rc, address, motorNum, stepBack, speed, 1, 0.75)
+        turn_by_encoder(rc, address, motorNum, stepBack, speed, 1, 1)
 
         time.sleep(2)
 
+        print("A HOME HAS BEEN FOUND\n")
         secondStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal, speed)
-        print("HOME FOUND!!!\n\n\n\n\n\n\n\n\n")
 #       attempting to finding stop again
 
         if(abs(secondStop - firstStop) <= breakVal * 2):
@@ -324,12 +325,14 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal, spe
             firstStop = secondStop
     
 #   Step back after finding home
+    print("RECENT HOME POSITION MATCH PREVIOUS HOME POSITION\n")
     turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 2), speed, 1, 5)
    
 
 
 
 def multi_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal, speed):
+#   UNDER CONSTRUCTION
 #   OBJECTIVE: To have the desired homing method run till find a stop, then have a back off and test again multiple times to ensure its working
 #   TODO: Run possible 3 checks or mind a way to prevent a second false positive from getting through
 #   TODO: Make sure the stepback wont hit something by insuring the stepback is less than the amount moved already
@@ -374,16 +377,18 @@ def homing_procedure(rc):
 #   Turn Claw 90 degrees to fit
     turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, CLAW_BACKWARD_FULLROT//4, CLAW_SPEED, 1, 3)
 #   Moving wrist to actual home at end
-    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 80, 1, 5)
+    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 100, 1, 7)
 
 
 
 # anirudh and trenten claw protocol for testing main
-def main():
+def main(cmd_call=None):
     #   configure Roboclaws
     rc = Roboclaw("/dev/ttyAMA1", 115200)
 #   generate/open port
     rc.Open()
+    if cmd_call == "one":
+        homing_procedure(rc)
     # print("here\n\n")
     # test_setup(rc)
     # home_base_setup_run(rc)
@@ -402,4 +407,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 2:
+        main(sys.argv[1])

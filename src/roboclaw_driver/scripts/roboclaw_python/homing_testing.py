@@ -90,6 +90,14 @@ def test_setup(rc: Roboclaw):
     print("SetUp complete\nMoving into normal testing\n\n")
 
 
+def move_away(rc):
+    turn_by_encoder(rc, BASE_ADDR, BASE_MOTOR, 3000, 100, 0, 1)
+    turn_by_encoder(rc, ELBOW_ADDR, ELBOW_MOTOR, -400, 80, 0, 1)
+    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, -200, 80, 0, 1)
+    time.sleep(20)
+    print("Movements Complete\n")
+
+
 def full_testing(rc):
 #   Program will run the homing protocol a given number of time as specified below
 #   and produce range 
@@ -142,7 +150,7 @@ def test_main(rc):
 #   Test Env Main loop
         print("Please enter the number of the type of testing you want to complete")
         print("--------------------------------")
-        print("1 for User entered Signle Motor Movments")
+        print("1 to move the arm out of the home position")
         print("2 for a single homing attempt")
         print("3 for the Full Homing Procedure Testing")
         print("4 to exit testing envirorment\n")
@@ -152,7 +160,7 @@ def test_main(rc):
 #           CASE: Single Movements for arm
             print("\n#############\nSINGLE MOVEMENTS\n#############")
             print("WARNING: the addresses used in config settings are not bound to Macros in homing_testing.py\n\n")
-            configSettings()                
+            move_away(rc)                
         elif(menuNav == 2):
 #           CASE: Run a single homing run
             print("\n#################\nSINGLE HOMING\n#################")

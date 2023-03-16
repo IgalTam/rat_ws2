@@ -5,14 +5,14 @@ import roslaunch
 
 def run_homing():
     """runs homing protocol"""
-    subprocess.run("src/roboclaw_driver/")
+    subprocess.run("/home/pi/ros_stuff/rat_ws2/src/roboclaw_driver/scripts/roboclaw_python/homing_testing.py", shell=True)
 
 def load_roslaunch():
     """loads roslaunch object to run
     Nuada main roslaunch"""
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
     roslaunch.configure_logging(uuid)
-    launch = roslaunch.parent.ROSLaunchParent(uuid, ["rat_control/launch/rat_hw_main.launch"])
+    launch = roslaunch.parent.ROSLaunchParent(uuid, ["/home/pi/ros_stuff/rat_ws2/src/rat_control/launch/rat_hw_main.launch"])
     return launch
 
 def load_ros_commands():
