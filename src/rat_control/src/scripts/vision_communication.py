@@ -45,6 +45,9 @@ class VisionCommunication:
         self.tubeFlag = False
         self.looped = False
         self.firstPickUp = False
+        self.data = ()
+        self.readyFlag = False
+        self.dataFlag = False
 
         self.mgi = MoveGroupInterface()
         self.bus = I2CBus()
@@ -90,8 +93,10 @@ class VisionCommunication:
         while True:
             data_packets = self.send_i2c_cmd()
             if data_packets == "Ready":
+                self.readyFlag = True
+                print("\nReady detected, waiting for coordinates.")
                 break
-            print("Ready not detected, exiting")        
+            print("\nReady not detected, exiting")        
 
         self.bus.write_pkt(b'cord', 'c', 0)
         print("Ready detected, waiting for coordinates")
@@ -120,7 +125,9 @@ class VisionCommunication:
         z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')]) - self.Z_OFF
         theta = int(float(data_packets[data_packets.index('a') + 1: ]))
 
-        print(f"Data:\n {x}, {y}, {z}, {theta}")
+        self.dataFlag = True
+
+        print(f"\nData: x: {x}, y: {y}, z: {z}, theta: {theta}\n")
 
         # self.horizontal_view(x, y)
         # self.distance_view(y)
@@ -131,19 +138,17 @@ class VisionCommunication:
     def vision_power_on(self):
         """Power on the vision system."""
 
+        # GPIO17 pin 11 is for controlling power
+
         # Power up vision system
         # Vision.Jetson.power_on();
-
-        # Start vision system pipeline
-        # Vision.Jetson.power_start();
 
         pass
 
     def vision_power_off(self):
         """Power off the vision system."""
 
-        # Stop vision system pipeline
-        # Vision.Jetson.power_stop();
+        # GPIO17 pin 11 is for controlling power
 
         # Power down vision system
         # Vision.Jetson.power_off();
@@ -156,6 +161,7 @@ class VisionCommunication:
 
         if x != 0:
             self.xFlag = True
+            turnDirection = None
 
             if x > 0:
                 # Turning Left
@@ -167,7 +173,7 @@ class VisionCommunication:
             
             turnAngle = math.degrees(math.atan(x / y))
 
-            print(f"Turn {turnAngle} degrees to the {turnDirection}")
+            print(f"Turn {turnAngle} degrees to the {turnDirection}.\n")
             
             # Call function to calculate angle
             # Tank Turn Function:
@@ -187,7 +193,7 @@ class VisionCommunication:
             move_distance = y - self.maxDistanceArm
             move_distance = ((move_distance + y) / 2)
 
-            print(f"Move forward {move_distance} cm")
+            print(f"Move forward {move_distance} cm.\n")
             
             # Call function to move rover forward
             # rov.move_forward(move_distance)
@@ -239,6 +245,117 @@ class VisionCommunication:
     def vision_interactive(self):
         """Vision System Interface"""
 
+        movedArm = False
+
+        print ('\n***** Welcome User! *****\n')
+
+        while True:
+            print('What command would you like to do with the Vision System?')
+
+            print('*************************************************')
+
+            print('1. Power On Vision System')
+
+            print('2. Power Off Vision System')
+
+            print('3. Check for Ready Command')
+
+            print('4. Take a Picture and Get Data Packets')
+
+            print('5. Tank Turn')
+
+            print('6. Move Forward')
+
+            print('7. Move Arm to Sample Tube')
+
+            print('8. Verify Pickup')
+
+            print('9. Reset Arm')
+
+            print('10. Exit')
+
+            print('*************************************************')
+            
+            user = input('Enter the command here (number): ')
+
+            if user == '3':
+                if self.readyFlag is True:
+                    print('\nVision System is already ready.')
+                else:
+                    print('\nChecking for Ready Command...')
+                    self.vision_ready()
+
+            if user == '4' and self.readyFlag is True:
+                print('\nTaking a picture and getting data packets...')
+                # self.readyFlag = False
+                self.xFlag = False
+                self.zFlag = False
+                self.data = self.vision_system()
+
+            if self.readyFlag is False and self.dataFlag is False:
+                print('\nVision System is not ready. Please try again.\n')
+            
+            if self.dataFlag is True:
+
+                match user:
+                    case '1':
+                        print('\nUnavailable feature at this time.\n')
+                        # print('Powering on Vision System...')
+                        # self.vision_power_on()
+                    case '2':
+                        print('\nUnavailable feature at this time.\n')
+                        # print('Powering off Vision System...')
+                        # self.vision_power_off()
+                    case '5':
+                        if self.data[0] != 0:
+                            print('\nTurning rover...')
+                            self.horizontal_view(self.data[0], self.data[1])
+                            print('Take a picture again.\n')
+                        else:
+                            print('\nThe rover is already in front of the sample tube.\n')
+                    case '6':
+                        if self.data[1] > self.maxDistanceArm:
+                            print('\nMoving rover forward...')
+                            self.distance_view(self.data[1])
+                            print('Take a picture again.\n')
+                        else:
+                            print('\nThe rover is already close enough to the sample tube.\n')
+                    case '7':
+                        if self.xFlag is False and self.zFlag is False:
+                            print('\nMoving arm to sample tube...\n')
+                            self.position_set(self.data[1], self.data[2], self.data[3])
+                            self.mgi.actuate_claw() # Pick up sample tube
+                            self.firstPickUp = True
+                            movedArm = True
+                        else:
+                            print('\nDetected the rover attempting to do either a '
+                            'tank turn or moving forward. Take another picture.\n')
+                    case '8':
+                        if self.firstPickUp is True:
+                            print('\nVerifying pickup...\n')
+                            self.move_tube()
+                            self.send_i2c_cmd()
+                            time.sleep(30)
+                            self.verify_pickup()
+                        else:
+                            print('\nThe arm has not tried to pick up a sample tube\n')
+                    case '9':
+                        if movedArm is True:
+                            print('\nResetting arm...\n')
+                            self.reset_arm()
+                            movedArm = False
+                        else:
+                            print('\nThe arm has not moved.\n')
+                    case '10':
+                        print('\nExiting...')
+                        break
+            
+            if self.dataFlag is False and self.readyFlag is True:
+                print('\nPlease take a picture first.\n')
+
+    def vision_script(self):
+        """Vision System Script"""
+
         done = False
         self.vision_ready()
         
@@ -271,8 +388,8 @@ class VisionCommunication:
                         
                 if self.xFlag or self.zFlag:
                     a4 = input('\nDetected the rover attempting to do either a '
-                           'tank turn or moving forward. Would you like to take another picture '
-                           'with the vision system? (Type y or n): ')
+                            'tank turn or moving forward. Would you like to take another picture '
+                            'with the vision system? (Type y or n): ')
                     
                     self.xFlag = False
                     self.zFlag = False
@@ -316,7 +433,7 @@ class VisionCommunication:
                 # done = True
                 break
 
-        if (done):
+        if done:
             print('\nResetting Arm Position...')
             
             self.reset_arm()
