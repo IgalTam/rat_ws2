@@ -40,11 +40,15 @@ def home_claw(homed, rc):
 def home_base(homed, rc):
     val = 0
     speed = 50 ; accel = 0; deccel = 0
+    num = 0
 
     while (homed != True):
-        # val -= 20
-        val -= 80
+        num += 1
+        val -= 20
+        # val -= 80
         rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
+        if num == 10:
+            rc.SpeedAccelDeccelPositionM1(ROBOCLAW_1, accel, speed, deccel, val, 1)
         time.sleep(1)
         
         homed = ((rc.ReadError(ROBOCLAW_1)[1] & 0x400000) == 0x400000)

@@ -34,7 +34,7 @@ ELBOW_ENC_DEG = 9
 # Amount and direction the homing will step the wrist per move
 ELBOW_ENC_BREAK = 7
 # The max encoder values that will cause a home detection for the ELBOW 
-ELBOW_SPEED = 40
+ELBOW_SPEED = 60
 # Speed of ELBOW while homing
 
 
@@ -48,7 +48,7 @@ WRIST_ENC_DEG = -6
 # Amount and direction the homing will step the WRIST per move
 WRIST_ENC_BREAK = 4
 # The max encoder values that will cause a home detection for the WRIST
-WRIST_SPEED = 40
+WRIST_SPEED = 60
 # Speed of WRIST while homing
 
 
@@ -58,7 +58,7 @@ CLAW_ADDR = 129
 CLAW_MOTOR = 1
 CLAW_ROT_OPENCLOSE = 60
 # Amount to run forward to open or close the claw 
-CLAW_BACKWARD_FULLROT = -240
+CLAW_BACKWARD_FULLROT = -230
 # Amount to run backward to complete a full rotation of claw
 CLAW_SPEED = 100
 # Speed of CLAW while homing
@@ -115,6 +115,9 @@ def kill_all_motors(rc):
     turn_by_encoder(rc, ELBOW_ADDR, ELBOW_MOTOR, 0, ELBOW_SPEED, 0, 0.1)
     turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, 0, WRIST_SPEED, 0, 0.1)
     turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, 0, CLAW_SPEED, 0, 0.1)
+
+#   def set_enc_zero(rc):
+#   Used to zero all motors an RAT arm(used at end of homing sequence)
 
 
 def step_till_stop(rc: Roboclaw, address, motorNum, encoderVal, breakVal, speed):
@@ -253,7 +256,8 @@ def home_base(homed, rc):
         print(val)
         # move to new position
         rc.SpeedAccelDeccelPositionM1(BASE_ADDR, accel, speed, deccel, val, 1)
-        time.sleep(3)
+        rc.SpeedAccelDeccelPositionM1(BASE_ADDR, accel, speed, deccel, val, 1) # doubled to eliminate runs that don't go through
+        time.sleep(2.5)
         
         # read in new position after move
         cur_pos = rc.ReadEncM1(BASE_ADDR)[1]
@@ -320,7 +324,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal, spe
             firstStop = secondStop
     
 #   Step back after finding home
-    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 2), speed, 1, 0.75)
+    turn_by_encoder(rc, address, motorNum, (encoderVal * -1 * 2), speed, 1, 5)
    
 
 
@@ -368,9 +372,9 @@ def homing_procedure(rc):
 #   Claw Homing
     home_claw_setup_run(rc)
 #   Turn Claw 90 degrees to fit
-    turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, CLAW_BACKWARD_FULLROT//4, CLAW_SPEED, 1, 1)
+    turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, CLAW_BACKWARD_FULLROT//4, CLAW_SPEED, 1, 3)
 #   Moving wrist to actual home at end
-    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 80, 1, 3)
+    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 80, 1, 5)
 
 
 
@@ -382,7 +386,7 @@ def main():
     rc.Open()
     # print("here\n\n")
     # test_setup(rc)
-    home_base_setup_run(rc)
+    # home_base_setup_run(rc)
     # home_claw_setup_run(rc)
 
     # double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
