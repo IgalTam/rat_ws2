@@ -33,8 +33,8 @@ class VisionCommunication:
     PRESET_Y2 = 20
     PRESET_Z2 = 25
 
-    # Coordinate Offsets
-    Y_OFF = 7.4
+    # Coordinate Offsets (subtracted from input coordinates)
+    Y_OFF = 9 #7.4
     Z_OFF = 21
 
     def __init__(self):
@@ -63,7 +63,7 @@ class VisionCommunication:
             if not pkt:
                 if self.firstPickUp is True:
                     self.tubeFlag = True
-                    self.firstPickUp = False
+                    # self.firstPickUp = False
                 continue
 
             if(pkt[I2CPacket.id_index].decode() != self.bus.pkt_targ_id) or (pkt[I2CPacket.stat_index] != b'd'):
@@ -72,7 +72,7 @@ class VisionCommunication:
             # print received data
             data = pkt[I2CPacket.data_index].decode().strip('\0')
             
-            if data is not None:
+            if data != "none":
                 print(f"data: {data}")
 
                 # if (self.previousCord is not None and self.previousCord == data):
@@ -81,6 +81,8 @@ class VisionCommunication:
                 self.previousCord = data
 
                 return data
+            else:
+                self.tubeFlag = True
             
     def i2c_image(self):
         """reads and saves image file sent over I2C"""
@@ -281,11 +283,11 @@ class VisionCommunication:
             user = input('Enter the command here (number): ')
 
             if user == '3':
-                if self.readyFlag is True:
-                    print('\nVision System is already ready.')
-                else:
-                    print('\nChecking for Ready Command...')
-                    self.vision_ready()
+                # if self.readyFlag is True:
+                #     print('\nVision System is already ready.')
+                # else:
+                print('\nChecking for Ready Command...')
+                self.vision_ready()
 
             # if user == '4' and self.readyFlag is True:
             if user == '4':
@@ -295,8 +297,8 @@ class VisionCommunication:
                 self.zFlag = False
                 self.data = self.vision_system()
 
-            if self.readyFlag is False and self.dataFlag is False:
-                print('\nVision System is not ready. Please try again.\n')
+            # if self.readyFlag is False and self.dataFlag is False:
+            #     print('\nVision System is not ready. Please try again.\n')
             
             if self.dataFlag is True:
 
