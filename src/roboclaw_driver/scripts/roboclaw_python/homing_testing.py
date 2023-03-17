@@ -73,12 +73,30 @@ def test_setup(rc: Roboclaw):
         motorNum = 0
         encoderVal = 0
         address = 0
-        address = int(input("Enter the address of the roboclaw you want to stepback?\n"))
-        print("Enter the motor you want to stepback? \n")
-        print("1 for M1")
-        motorNum = int(input("2 for M2\n"))
-        encoderVal = int(input("How many Encoder turns? \n"))
-
+        value = 0
+        print("Enter the first letter of the joint you want to move")
+        print("c for claw")
+        print("w for wrist")
+        print("e for elbow")
+        print("b for base")
+        value = int(input("input: "))
+        if(value == "c"):
+            address = CLAW_ADDR
+            motorNum = CLAW_MOTOR
+        elif(value == "w"):
+            address = WRIST_ADDR
+            motorNum = WRIST_MOTOR
+        elif(value == "e"):
+            address = ELBOW_ADDR
+            motorNum = ELBOW_MOTOR
+        elif(value == "b"):
+            address = BASE_ADDR
+            motorNum = BASE_MOTOR
+        else:
+            print("INVALID ENTRY: ", value, "\nReturning to main menu\n\n")
+            return
+        
+        encoderVal = input("Enter the the value for the ammount of encoder position you want to move: ")
         print("Values: ", address, " ", motorNum, " ", encoderVal, "\n")
         turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
 
