@@ -304,7 +304,6 @@ class VisionCommunication:
 
             if user == '4' and self.readyFlag is True:
                 print('\nTaking a picture and getting data packets...')
-                # self.readyFlag = False
                 self.xFlag = False
                 self.zFlag = False
                 self.data = self.vision_system()
