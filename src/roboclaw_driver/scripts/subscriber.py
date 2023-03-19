@@ -61,8 +61,8 @@ class RoboclawNode:
             address = int(self.joint_addresses[i]) # default: 0x80 or 128
             channel = int(self.joint_channels[i])
             cnts_per_rev = int(self.joint_cnts_per_rev[i])
-            # if i == 2: # need to set the wrist to 90 degrees
-            #     # cnts_per_rev += cnts_per_rev//4
+            if i == 2: # set the wrist to 45 degrees for home position
+                cnts_per_rev += cnts_per_rev//8
             if channel == 1:
                 self.rc.SetEncM1(address,cnts_per_rev)
             if channel == 2:
