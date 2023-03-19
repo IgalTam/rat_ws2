@@ -33,9 +33,9 @@ class VisionCommunication:
     PRESET_Y2 = 20
     PRESET_Z2 = 25
 
-    # Coordinate Offsets (subtracted from input coordinates)
-    Y_OFF = 9 #7.4
-    Z_OFF = 21
+    # Coordinate Offsets
+    Y_OFF = 7.4
+    Z_OFF = 24.2
 
     def __init__(self):
         self.xFlag = False
@@ -72,7 +72,7 @@ class VisionCommunication:
             # print received data
             data = pkt[I2CPacket.data_index].decode().strip('\0')
             
-            if data != "none":
+            if data != 'none':
                 print(f"data: {data}")
 
                 # if (self.previousCord is not None and self.previousCord == data):
@@ -100,8 +100,17 @@ class VisionCommunication:
                 break
             print("\nReady not detected, exiting")        
 
-        # self.bus.write_pkt(b'cord', 'c', 0)
-        # print("Ready detected, waiting for coordinates")
+        #self.bus.write_pkt(b'cord', 'c', 0)
+        #print("Ready detected, waiting for coordinates")
+
+    def vision_none(self):
+        self.bus.write_pkt(b'cord', 'c', 0)
+
+        data_packets = None
+        while data_packets is None:
+            data_packets = self.send_i2c_cmd()
+        
+        return data_packets
     
     def vision_system(self):
         """Main function for the vision system interface. The function takes
@@ -115,6 +124,7 @@ class VisionCommunication:
         - z -         Height Coordinate (cm)
         - theta -     Angle of the test tube (degrees)
         """
+        
         self.bus.write_pkt(b'cord', 'c', 0)
 
         data_packets = None
@@ -164,6 +174,8 @@ class VisionCommunication:
         have the rover do a tank turn."""
 
         if x != 0:
+            print('\nTurning rover...')
+
             self.xFlag = True
             turnDirection = None
 
@@ -182,8 +194,11 @@ class VisionCommunication:
             # Call function to calculate angle
             # Tank Turn Function:
             # rov.do_tank_turn(angle)
+
+            print('Take a picture again.\n')
             
         else:
+            print('\nThe rover is already in front of the sample tube.\n')
             self.xFlag = False
     
     def distance_view(self, y):
@@ -191,6 +206,8 @@ class VisionCommunication:
         If the rover's arm can't reach, then the rover will move forward."""
 
         if y > self.maxDistanceArm:
+            print('\nMoving rover forward...')
+
             self.zFlag = True
 
             # Calculate distance for going forward
@@ -201,8 +218,11 @@ class VisionCommunication:
             
             # Call function to move rover forward
             # rov.move_forward(move_distance)
+
+            print('Take a picture again.\n')
             
         else:
+            print('\nThe rover is already close enough to the sample tube.\n')
             self.zFlag = False
     
     def position_set(self, y, z, theta):
@@ -210,19 +230,20 @@ class VisionCommunication:
         the vision system to obtain new data packets. Otherwise, send y, z, and 
         theta values to ROS."""
 
-        if self.xFlag or self.zFlag:
-            # Power back on vision system
-            self.vision_system()
-        
-        else:
+        if self.xFlag is False and self.zFlag is False:
+            print('\nMoving arm to sample tube...\n')
+
             # Functionality for interfacing with ROS
             # Send y, z, and theta into ROS
             self.mgi.actuate_claw()          # open/close claw
             self.mgi.rotate_claw(theta)      # rotate claw
             self.mgi.vision_to_moveit(y, z)  # move to coordinate location (270-315 deg. angle of approach)
+        else:
+            print('\nDetected the rover attempting to do either a tank turn or moving forward. Take another picture.\n')
     
     def move_tube(self):
         """Moves the sample tube when in the rover's arm."""
+        
         self.mgi.vision_to_moveit(self.PRESET_Y1, self.PRESET_Z1)  # move to coordinate location (270-315 deg. angle of approach)
         self.mgi.vision_to_moveit(self.PRESET_Y2, self.PRESET_Z2)  # move to coordinate location (270-315 deg. angle of approach)
     
@@ -236,10 +257,7 @@ class VisionCommunication:
         """Verifies that the rover has picked up the sample tube."""
 
         # If the vision system can't find the tube in a minute, then there is no tube
-        # data_packets = self.vision_system()
-        # if data_packets[0] == 1000:
-        #     self.tubeFlag = True
-        
+
         if self.tubeFlag is True:
             print("\nSample tube has been picked up.")
             self.tubeFlag = False
@@ -283,76 +301,61 @@ class VisionCommunication:
             user = input('Enter the command here (number): ')
 
             if user == '3':
-                # if self.readyFlag is True:
-                #     print('\nVision System is already ready.')
-                # else:
-                print('\nChecking for Ready Command...')
-                self.vision_ready()
+                if self.readyFlag is True:
+                    print('\nVision System is already ready.')
+                else:
+                    print('\nChecking for Ready Command...')
+                    self.vision_ready()
 
-            # if user == '4' and self.readyFlag is True:
-            if user == '4':
+            if user == '4' and self.readyFlag is True:
                 print('\nTaking a picture and getting data packets...')
                 # self.readyFlag = False
                 self.xFlag = False
                 self.zFlag = False
                 self.data = self.vision_system()
 
-            # if self.readyFlag is False and self.dataFlag is False:
-            #     print('\nVision System is not ready. Please try again.\n')
+            if self.readyFlag is False and self.dataFlag is False:
+                print('\nVision System is not ready. Please try again.\n')
             
             if self.dataFlag is True:
 
-                if user == '1':
-                    print('\nUnavailable feature at this time.\n')
-                    # print('Powering on Vision System...')
-                    # self.vision_power_on()
-                if user == '2':
-                    print('\nUnavailable feature at this time.\n')
-                    # print('Powering off Vision System...')
-                    # self.vision_power_off()
-                if user == '5':
-                    if self.data[0] != 0:
-                        print('\nTurning rover...')
+                match user:
+                    case '1':
+                        print('\nUnavailable feature at this time.\n')
+                        # print('Powering on Vision System...')
+                        # self.vision_power_on()
+                    case '2':
+                        print('\nUnavailable feature at this time.\n')
+                        # print('Powering off Vision System...')
+                        # self.vision_power_off()
+                    case '5':
                         self.horizontal_view(self.data[0], self.data[1])
-                        print('Take a picture again.\n')
-                    else:
-                        print('\nThe rover is already in front of the sample tube.\n')
-                if user == '6':
-                    if self.data[1] > self.maxDistanceArm:
-                        print('\nMoving rover forward...')
+                    case '6':
                         self.distance_view(self.data[1])
-                        print('Take a picture again.\n')
-                    else:
-                        print('\nThe rover is already close enough to the sample tube.\n')
-                if user == '7':
-                    if self.xFlag is False and self.zFlag is False:
-                        print('\nMoving arm to sample tube...\n')
+                    case '7':
                         self.position_set(self.data[1], self.data[2], self.data[3])
                         self.mgi.actuate_claw() # Pick up sample tube
                         self.firstPickUp = True
                         movedArm = True
-                    else:
-                        print('\nDetected the rover attempting to do either a '
-                        'tank turn or moving forward. Take another picture.\n')
-                if user == '8':
-                    if self.firstPickUp is True:
-                        print('\nVerifying pickup...\n')
-                        self.move_tube()
-                        self.send_i2c_cmd()
-                        time.sleep(30)
-                        self.verify_pickup()
-                    else:
-                        print('\nThe arm has not tried to pick up a sample tube\n')
-                if user == '9':
-                    if movedArm is True:
-                        print('\nResetting arm...\n')
-                        self.reset_arm()
-                        movedArm = False
-                    else:
-                        print('\nThe arm has not moved.\n')
-                if user == '10':
-                    print('\nExiting...')
-                    break
+                    case '8':
+                        if self.firstPickUp is True:
+                            print('\nVerifying pickup...\n')
+                            self.move_tube()
+                            self.send_i2c_cmd()
+                            time.sleep(30)
+                            self.verify_pickup()
+                        else:
+                            print('\nThe arm has not tried to pick up a sample tube\n')
+                    case '9':
+                        if movedArm is True:
+                            print('\nResetting arm...\n')
+                            self.reset_arm()
+                            movedArm = False
+                        else:
+                            print('\nThe arm has not moved.\n')
+                    case '10':
+                        print('\nExiting...')
+                        break
             
             if self.dataFlag is False and self.readyFlag is True:
                 print('\nPlease take a picture first.\n')
