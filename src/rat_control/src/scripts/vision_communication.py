@@ -34,17 +34,17 @@ class VisionCommunication:
     PRESET_Z2 = 25
 
     # Coordinate Offsets
-    Y_OFF = 7.4
-    Z_OFF = 24.2
+    Y_OFF = 12
+    Z_OFF = 21
 
     def __init__(self):
         self.xFlag = False
         self.zFlag = False
         self.maxDistanceArm = 30
-        self.previousCord = None
         self.tubeFlag = False
         self.looped = False
         self.firstPickUp = False
+        self.movedArm = False
         self.data = ()
         self.readyFlag = False
         self.dataFlag = False
@@ -63,7 +63,6 @@ class VisionCommunication:
             if not pkt:
                 if self.firstPickUp is True:
                     self.tubeFlag = True
-                    # self.firstPickUp = False
                 continue
 
             if(pkt[I2CPacket.id_index].decode() != self.bus.pkt_targ_id) or (pkt[I2CPacket.stat_index] != b'd'):
@@ -74,11 +73,6 @@ class VisionCommunication:
             
             if data != 'none':
                 print(f"data: {data}")
-
-                # if (self.previousCord is not None and self.previousCord == data):
-                #     self.tubeFlag = True
-                
-                self.previousCord = data
 
                 return data
             else:
@@ -98,10 +92,7 @@ class VisionCommunication:
                 self.readyFlag = True
                 print("\nReady detected, waiting for coordinates.")
                 break
-            print("\nReady not detected, exiting")        
-
-        #self.bus.write_pkt(b'cord', 'c', 0)
-        #print("Ready detected, waiting for coordinates")
+            print("\nReady not detected, exiting")
 
     def vision_none(self):
         self.bus.write_pkt(b'cord', 'c', 0)
@@ -143,31 +134,21 @@ class VisionCommunication:
 
         print(f"\nData: x: {x}, y: {y}, z: {z}, theta: {theta}\n")
 
-        # self.horizontal_view(x, y)
-        # self.distance_view(y)
-        # self.position_set(y, z, theta)
-
         return x, y, z, theta
     
     def vision_power_on(self):
         """Power on the vision system."""
 
-        # GPIO17 pin 11 is for controlling power
+        print('Powering on Vision System...')
 
-        # Power up vision system
-        # Vision.Jetson.power_on();
-
-        pass
+        # GPIO17 pin 11 is for controlling power for the Jetson Nono
 
     def vision_power_off(self):
         """Power off the vision system."""
 
-        # GPIO17 pin 11 is for controlling power
+        print('Powering off Vision System...')
 
-        # Power down vision system
-        # Vision.Jetson.power_off();
-
-        pass
+        # GPIO17 pin 11 is for controlling power to the Jetson Nano
 
     def horizontal_view(self, x, y):
         """If x is not zero (x = 0 means arm is directly in front of sample tube),
@@ -238,43 +219,60 @@ class VisionCommunication:
             self.mgi.actuate_claw()          # open/close claw
             self.mgi.rotate_claw(theta)      # rotate claw
             self.mgi.vision_to_moveit(y, z)  # move to coordinate location (270-315 deg. angle of approach)
+            self.mgi.actuate_claw() # open/close claw
+
+            self.firstPickUp = True
+            self.movedArm = True
         else:
             print('\nDetected the rover attempting to do either a tank turn or moving forward. Take another picture.\n')
     
     def move_tube(self):
         """Moves the sample tube when in the rover's arm."""
-        
+
         self.mgi.vision_to_moveit(self.PRESET_Y1, self.PRESET_Z1)  # move to coordinate location (270-315 deg. angle of approach)
         self.mgi.vision_to_moveit(self.PRESET_Y2, self.PRESET_Z2)  # move to coordinate location (270-315 deg. angle of approach)
     
     def reset_arm(self):
         """Resets the rover's arm to its original position."""
 
-        self.mgi.rotate_claw(self.DEFAULT_THETA)
-        self.mgi.vision_to_moveit(self.DEFAULT_Y, self.DEFAULT_Z)
+        if self.movedArm is True:
+            print('\nResetting arm...\n')
+
+            self.mgi.rotate_claw(self.DEFAULT_THETA)
+            self.mgi.vision_to_moveit(self.DEFAULT_Y, self.DEFAULT_Z)
+            self.movedArm = False
+
+        else:
+            print('\nThe arm has not moved.\n')
     
     def verify_pickup(self):
         """Verifies that the rover has picked up the sample tube."""
 
-        # If the vision system can't find the tube in a minute, then there is no tube
+        if self.firstPickUp is True:
+            print('\nVerifying pickup...\n')
+            self.move_tube()
+            self.send_i2c_cmd()
+            time.sleep(30)
 
-        if self.tubeFlag is True:
-            print("\nSample tube has been picked up.")
-            self.tubeFlag = False
+            # If the vision system can't find the tube in a minute, then there is no tube
+            if self.tubeFlag is True:
+                print("\nSample tube has been picked up.")
+                self.tubeFlag = False
+            else:
+                print("\nSample tube has not been picked up.")
+
         else:
-            print("\nSample tube has not been picked up.")
+            print('\nThe arm has not tried to pick up a sample tube\n')
 
     def vision_interactive(self):
         """Vision System Interface"""
-
-        movedArm = False
 
         print ('\n***** Welcome User! *****\n')
 
         while True:
             print('What command would you like to do with the Vision System?')
 
-            print('*************************************************')
+            print('**********************************************************')
 
             print('1. Power On Vision System')
 
@@ -296,7 +294,7 @@ class VisionCommunication:
 
             print('10. Exit')
 
-            print('*************************************************')
+            print('**********************************************************')
             
             user = input('Enter the command here (number): ')
 
@@ -319,136 +317,30 @@ class VisionCommunication:
             
             if self.dataFlag is True:
 
-                match user:
-                    case '1':
-                        print('\nUnavailable feature at this time.\n')
-                        # print('Powering on Vision System...')
-                        # self.vision_power_on()
-                    case '2':
-                        print('\nUnavailable feature at this time.\n')
-                        # print('Powering off Vision System...')
-                        # self.vision_power_off()
-                    case '5':
-                        self.horizontal_view(self.data[0], self.data[1])
-                    case '6':
-                        self.distance_view(self.data[1])
-                    case '7':
-                        self.position_set(self.data[1], self.data[2], self.data[3])
-                        self.mgi.actuate_claw() # Pick up sample tube
-                        self.firstPickUp = True
-                        movedArm = True
-                    case '8':
-                        if self.firstPickUp is True:
-                            print('\nVerifying pickup...\n')
-                            self.move_tube()
-                            self.send_i2c_cmd()
-                            time.sleep(30)
-                            self.verify_pickup()
-                        else:
-                            print('\nThe arm has not tried to pick up a sample tube\n')
-                    case '9':
-                        if movedArm is True:
-                            print('\nResetting arm...\n')
-                            self.reset_arm()
-                            movedArm = False
-                        else:
-                            print('\nThe arm has not moved.\n')
-                    case '10':
-                        print('\nExiting...')
-                        break
+                # Python 3.7 doesn't support switch statements, so had to use if/elif statements
+
+                if user == '1':
+                    print('\nUnavailable feature at this time.\n')
+                    # self.vision_power_on()
+                elif user == '2':
+                    print('\nUnavailable feature at this time.\n')
+                    # self.vision_power_off()
+                elif user == '5':
+                    self.horizontal_view(self.data[0], self.data[1])
+                elif user == '6':
+                    self.distance_view(self.data[1])
+                elif user == '7':
+                    self.position_set(self.data[1], self.data[2], self.data[3])
+                elif user == '8':
+                    self.verify_pickup()
+                elif user == '9':
+                    self.reset_arm()
+                elif user == '10':
+                    print('\nExiting...')
+                    break
             
             if self.dataFlag is False and self.readyFlag is True:
                 print('\nPlease take a picture first.\n')
-
-    def vision_script(self):
-        """Vision System Script"""
-
-        done = False
-        self.vision_ready()
-        
-        while True:
-            if not self.looped:
-                print ('\n***** Welcome User! *****\n')
-                a1 = input('Would you like to use the Vision System? (Type y or n): ')
-            else:
-                a1 = 'y'
-
-            if a1 == 'y' or a1 == 'Y':
-                print('\nUsing Vision System...')
-                data_packets = self.vision_system()
-
-                if data_packets[0] != 0:
-                    a2 = input('\nThe rover is not facing the sample tube. ' 
-                        'Would you like to do a tank turn? (Type y or n): ')
-                    
-                    if a2 == 'y' or a2 == 'Y':
-                        print('\nTurning Rover...')
-                        self.horizontal_view(data_packets[0], data_packets[1])
-                
-                if data_packets[1] > self.maxDistanceArm:
-                    a3 = input('\nThe rover is too far away from the sample tube. ' 
-                        'Would you like to move the rover forward? (Type y or n): ')
-                    
-                    if a3 == 'y' or a3 == 'Y':
-                        print('\nMoving Rover Forward...')
-                        self.distance_view(data_packets[1])
-                        
-                if self.xFlag or self.zFlag:
-                    a4 = input('\nDetected the rover attempting to do either a '
-                            'tank turn or moving forward. Would you like to take another picture '
-                            'with the vision system? (Type y or n): ')
-                    
-                    self.xFlag = False
-                    self.zFlag = False
-                    
-                    if a4 == 'y' or a4 == 'Y':
-                        self.looped = True
-                        done = False
-                        break
-                
-                a5 = input('\nWould you like to move the arm to the desired '
-                            'location? (Type y or n): ')
-                
-                if a5 == 'y' or a5 == 'Y':
-                    print('\nMoving Arm...')
-                    self.position_set(data_packets[1], data_packets[2], data_packets[3])
-                    self.mgi.actuate_claw() # pick up sample tube
-                    self.firstPickUp = True
-
-                    a6 = input('\nWould you like to use check if the tube was picked up? '
-                            '(Type y or n): ')
-                    
-                    if a6 == 'y' or a6 == 'Y':
-                        print('\nVerifying Pickup...')
-                        self.move_tube()
-                        self.send_i2c_cmd()
-                        time.sleep(60)
-                        self.verify_pickup()
-                
-                a7 = input('\nWould you like to use the vision system again? '
-                            '(Type y or n): ')
-                
-                if a7 == 'y' or a7 == 'Y':
-                    self.looped = True
-                    done = False
-                else:
-                    self.looped = False
-                    done = True
-                    break
-
-            else:
-                # done = True
-                break
-
-        if done:
-            print('\nResetting Arm Position...')
-            
-            self.reset_arm()
-            
-            print("\n***** Logging Off *****")
-
-        else:
-            self.vision_interactive()
 
 if __name__ == "__main__":
 
