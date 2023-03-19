@@ -2,21 +2,18 @@
 
 import time
 import math
-import threading
 import sys
 
 from typing import Union
 import numpy as np
 
-# import Rovor.src.rovor.jetson as Visioncle
 from move_group_interface import MoveGroupInterface
 
 from i2c_bus import *
 
 sys.path.insert(0, "/home/pi/goscout/Rover/src/rover")
 
-# from rover import main as rov
-# from .rover import *
+# from rover import testbench as rov
 
 class VisionCommunication:
     """Communication and Commands for Arm-Vision Rover"""
@@ -33,8 +30,8 @@ class VisionCommunication:
     PRESET_Y2 = 20
     PRESET_Z2 = 25
 
-    # Coordinate Offsets
-    Y_OFF = 12
+    # Coordinate Offsets from camera to arm
+    Y_OFF = 9
     Z_OFF = 21
 
     def __init__(self):
@@ -141,14 +138,14 @@ class VisionCommunication:
 
         print('Powering on Vision System...')
 
-        # GPIO17 pin 11 is for controlling power for the Jetson Nono
+        # GPIO17 Pin 11 is for controlling power for the Jetson Nono
 
     def vision_power_off(self):
         """Power off the vision system."""
 
         print('Powering off Vision System...')
 
-        # GPIO17 pin 11 is for controlling power to the Jetson Nano
+        # GPIO17 Pin 11 is for controlling power to the Jetson Nano
 
     def horizontal_view(self, x, y):
         """If x is not zero (x = 0 means arm is directly in front of sample tube),
@@ -216,10 +213,10 @@ class VisionCommunication:
 
             # Functionality for interfacing with ROS
             # Send y, z, and theta into ROS
-            self.mgi.actuate_claw()          # open/close claw
-            self.mgi.rotate_claw(theta)      # rotate claw
-            self.mgi.vision_to_moveit(y, z)  # move to coordinate location (270-315 deg. angle of approach)
-            self.mgi.actuate_claw() # open/close claw
+            self.mgi.actuate_claw()             # open/close claw
+            self.mgi.rotate_claw(theta)         # rotate claw
+            self.mgi.vision_to_moveit(y, z)     # move to coordinate location (270-315 deg. angle of approach)
+            self.mgi.actuate_claw()             # open/close claw
 
             self.firstPickUp = True
             self.movedArm = True
@@ -229,8 +226,8 @@ class VisionCommunication:
     def move_tube(self):
         """Moves the sample tube when in the rover's arm."""
 
-        self.mgi.vision_to_moveit(self.PRESET_Y1, self.PRESET_Z1)  # move to coordinate location (270-315 deg. angle of approach)
-        self.mgi.vision_to_moveit(self.PRESET_Y2, self.PRESET_Z2)  # move to coordinate location (270-315 deg. angle of approach)
+        self.mgi.vision_to_moveit(self.PRESET_Y1, self.PRESET_Z1)   # move to coordinate location (270-315 deg. angle of approach)
+        self.mgi.vision_to_moveit(self.PRESET_Y2, self.PRESET_Z2)   # move to coordinate location (270-315 deg. angle of approach)
     
     def reset_arm(self):
         """Resets the rover's arm to its original position."""
