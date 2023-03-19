@@ -389,21 +389,6 @@ def main(cmd_call=None):
     rc.Open()
     if cmd_call == "one":
         homing_procedure(rc)
-    # print("here\n\n")
-    # test_setup(rc)
-    # home_base_setup_run(rc)
-    # home_claw_setup_run(rc)
-
-    # double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
-    # double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 6)
-
-
-# sebastian homing protocol main
-# def main():
-# #   configure Roboclaws
-#     rc = Roboclaw("/dev/ttyAMA1", 115200)
-# #   generate/open port
-#     rc.Open()
 
 
 if __name__ == "__main__":
