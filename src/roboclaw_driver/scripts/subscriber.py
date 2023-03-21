@@ -12,7 +12,7 @@ class RoboclawNode:
     # config file maps address/channel to index in armCmd.msg
     # number of joints is specified in armCmd.msg AND in joint_config.ini
     parser = ConfigParser()
-    parser.read("/home/pi/ros_stuff/rat_ws2/src/roboclaw_driver/scripts/joint_config.ini")
+    parser.read("/home/pi/rat_ws2/src/roboclaw_driver/scripts/joint_config.ini")
     num_joints = int(parser['JOINTS']['num_joints'])
     joint_addresses= parser['JOINTS']['addresses'].split(", ") # address of roboclaw for that joint
     joint_channels = parser['JOINTS']['channels'].split(", ")
