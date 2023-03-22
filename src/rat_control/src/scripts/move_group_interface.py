@@ -190,7 +190,7 @@ def main_interactive():
             if input("rotate claw? (yes/n): ") == "yes":
                 claw_angle = input("input desired angle (positive integer, in degrees) > ")
                 if claw_angle.isdigit() and int(claw_angle) >= 0:
-                    interface.position_claw(float(int(claw_angle) * np.pi) / 180)
+                    interface.rotate_claw(float(int(claw_angle) * np.pi) / 180)
                     print(f"claw sent to {claw_angle} degrees")
                 else:
                     print(f"desired angle {claw_angle} is invalid, skipping...")

@@ -3,7 +3,7 @@ build/
 devel/
 .catkin_workspace
 **/__pycache__/*
-src/rat_control/src/scripts/roboclaw_python/
+src/.rosinstall
 src/q
 src/roboclaw_driver/scripts/.joint_config.ini.swp
 .git-old-0/
