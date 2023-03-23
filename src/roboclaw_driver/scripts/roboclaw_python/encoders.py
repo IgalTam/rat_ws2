@@ -141,7 +141,8 @@ def nuada_demo(accel, speed, deccel):
 
 if __name__ == "__main__":
     #Linux comport name -> for UART3 on the Nuada Pi4, this is ttyAMA1)
-    rc = Roboclaw("/dev/ttyAMA1", 115200)
+#    rc = Roboclaw("/dev/ttyAMA1", 115200)
+    rc = Roboclaw("/dev/ttyS0", 115200)
     print(f"port open is {rc.Open()}")
 
     accel = 0
