@@ -95,30 +95,31 @@ class MoveGroupInterface(object):
         self.planning_frame = planning_frame
         self.eef_link = eef_link
         self.group_names = group_names
+        self.PHI_MIN = 270
+        self.PHI_MAX = 315
+        self.phi_range = [self.PHI_MIN, self.PHI_MAX]
     
     def actuate_claw(self):
-        # rc = Roboclaw("/dev/ttyS0", 115200)
-        # rc.Open()
-        # address = 0x81
-        # rc.SetEncM1(address, 0) # reset this encoder
-        # rc.SpeedAccelDeccelPositionM1(address,0,100,0,57,1)
+        """actuate claw (open/close claw)
+        all negative values passed into armCmd objects
+        translate to claw actuation"""
         msg = armCmd()
         msg.position_rads = [0, 0, 0, -1]
         msg.speed = [0, 0, 0, 0]
         msg.accel_deccel = [0, 0, 0, 0]
         self.cmd_pub.publish(msg)
     
-    def position_claw(self, angle_rad: float):
-        """rotate claw motor to input angle"""
+    def rotate_claw(self, angle_deg: int):
+        """rotate claw motor to input angle (in degrees)
+        occurs separately from base/elbow/wrist movement"""
         msg = armCmd()
-        msg.position_rads = [0, 0, 0, angle_rad]
+        msg.position_rads = [0, 0, 0, np.deg2rad(angle_deg)]
         msg.speed = [0, 0, 0, 0]
         msg.accel_deccel = [0, 0, 0, 0]
         self.cmd_pub.publish(msg)
-        # UNFINISHED
         
     def go_to_joint_goal(self, joint_angles:list):
-
+        """sends joint solution angle list to moveit node"""
         self.move_group.set_joint_value_target({"base_joint": joint_angles[0],
                                                  "elbow_joint":joint_angles[1],
                                                  "wrist_joint":joint_angles[2]})
@@ -128,7 +129,23 @@ class MoveGroupInterface(object):
         # print(f"output of move: {plan} type: {type(plan)}")
         # Calling `stop()` ensures that there is no residual movement
         self.move_group.stop()
-        # print(f"after stop")
+    
+    def vision_to_moveit(self, y: float, z: float) -> bool:
+        """takes as input y and z coordinates from vision team,
+        uses inverse kinematics to calculate a joint solution, then sends
+        it to moveit node"""
+
+        print(f'z:{z}, y:{y}')
+        print("Connecting to Moveit...")
+        if self.phi_range and len(self.phi_range) == 1: # make list have two elements, that are the same
+            self.phi_range.append(self.phi_range[0])
+        joint_solution_angles, _ = inverseKinematics(y, z, phi_lo=self.phi_range[0], phi_hi=self.phi_range[1])
+        print(self.move_group.get_current_joint_values())
+        if not joint_solution_angles:
+            print("No solution found exiting...")
+            return False # joint calculations unsuccessful
+        self.go_to_joint_goal(joint_solution_angles)
+        return True # joint calculations successful
 
     def get_cur_pose(self):
         pos = self.move_group.get_current_pose().pose.position
