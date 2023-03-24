@@ -302,11 +302,14 @@ class VisionCommunication:
                     print('\nChecking for Ready Command...')
                     self.vision_ready()
 
-            if user == '4' and self.readyFlag is True:
-                print('\nTaking a picture and getting data packets...')
-                self.xFlag = False
-                self.zFlag = False
-                self.data = self.vision_system()
+            if user == '4': # and self.readyFlag is True:
+                try:
+                    print('\nTaking a picture and getting data packets...')
+                    self.xFlag = False
+                    self.zFlag = False
+                    self.data = self.vision_system()
+                except IOError:
+                    print('\nPlease ready up (3).')
 
             if self.readyFlag is False and self.dataFlag is False:
                 print('\nVision System is not ready. Please try again.\n')
