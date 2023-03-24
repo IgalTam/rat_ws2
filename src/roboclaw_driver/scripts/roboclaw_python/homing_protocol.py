@@ -311,7 +311,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal, spe
     while not (trueHome):
         stepBack = (-1 * encoderVal * 10)
 #       the ammount the arm will step back before attempting the homing again
-        turn_by_encoder(rc, address, motorNum, stepBack, speed, 1, 3)
+        turn_by_encoder(rc, address, motorNum, stepBack, speed, 1, 4)
 
         time.sleep(2)
 
@@ -339,7 +339,7 @@ def multi_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal, spee
 #   TODO: Run possible 3 checks or mind a way to prevent a second false positive from getting through
 #   TODO: Make sure the stepback wont hit something by insuring the stepback is less than the amount moved already
     trueHome = False
-    # recordedHomes = list[5]
+#   recordedHomes = list[5]
 
     firstStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal, speed)
 #   First attempt at homing

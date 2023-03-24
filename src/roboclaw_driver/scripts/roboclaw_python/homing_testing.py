@@ -67,7 +67,7 @@ CLAW_SPEED = 100
 
 
 
-def test_setup(rc: Roboclaw):
+def single_move(rc: Roboclaw):
     while(input("Want to change an arm starting position? y/n\n") == "y"):
 
         motorNum = 0
@@ -97,41 +97,41 @@ def test_setup(rc: Roboclaw):
             return
         
         encoderVal = input("Enter the the value for the ammount of encoder position you want to move: ")
-        print("Values: ", address, " ", motorNum, " ", encoderVal, "\n")
-        turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
+        print("Values: ", address, " ", motorNum, " ", encoderVal)
+        turn_by_encoder(rc, address, motorNum, encoderVal, 40, 1)
 
         while(input("Want to make another move with the same setup? y/n\n") == "y"):
-            encoderVal = int(input("How many Encoder turns? \n"))
-            print("Values: ", address, " ", motorNum, " ", encoderVal, "\n")
-            turn_by_encoder(rc, address, motorNum, encoderVal, TEST_SPEED, 1)
+            encoderVal = int(input("How many Encoder turns?"))
+            print("Values: ", address, " ", motorNum, " ", encoderVal)
+            turn_by_encoder(rc, address, motorNum, encoderVal, 40, 1)
         
     print("SetUp complete\nMoving into normal testing\n\n")
 
+def single_homing_test(rc):
+    print("Enter the first letter of the joint you want to home")
+    print("c for claw")
+    print("w for wrist")
+    print("e for elbow")
+    print("b for base")
+    value = int(input("input: "))
+    if(value == "c"):
+        home_claw_setup_run(rc)
+    elif(value == "w"):
+        double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_ENC_DEG, WRIST_ENC_BREAK, WRIST_SPEED)
+    elif(value == "e"):
+        double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, ELBOW_ENC_DEG, ELBOW_ENC_BREAK, ELBOW_SPEED)
+    elif(value == "b"):
+        home_base_setup_run(rc)
+    else:
+        print("INVALID ENTRY: ", value, "\nReturning to main menu\n\n")
+        return
 
 def move_away(rc):
-    turn_by_encoder(rc, BASE_ADDR, BASE_MOTOR, 3000, 100, 0, 1)
+    turn_by_encoder(rc, BASE_ADDR, BASE_MOTOR, 2000, 100, 0, 1)
     turn_by_encoder(rc, ELBOW_ADDR, ELBOW_MOTOR, -400, 80, 0, 1)
-    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, -200, 80, 0, 1)
+    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, 200, 80, 0, 1)
     time.sleep(20)
     print("Movements Complete\n")
-
-
-def full_testing(rc):
-#   Program will run the homing protocol a given number of time as specified below
-#   and produce range 
-    numRuns = int(input("Enter the number of times you want to run homing: "))
-    print("\nREADY TO RUN TESTING FOR HOMING")
-    print("--------------------------------")
-    print("NOTE: at any point during testing, using ctrl + C will stop the arm in any position and return to the menu\n")
-    input("Press any key to continue: ")
-#   Start of Testing Run
-    try:
-        val = 1
-    except KeyboardInterrupt:
-        print("FORCED OUT OF TESTING LOOP\n")
-        kill_all_motors(rc)
-
-
 
 
 def confirm_motor_addresses():
@@ -170,7 +170,7 @@ def test_main(rc):
         print("--------------------------------")
         print("1 to move the arm out of the home position")
         print("2 for a single homing attempt")
-        print("3 for the Full Homing Procedure Testing")
+        print("3 to test a signle homing feature")
         print("4 to exit testing envirorment\n")
         menuNav = int(input("Enter choice Here: "))
 #       Offering choice to user to run different types of tests 
@@ -178,7 +178,7 @@ def test_main(rc):
 #           CASE: Single Movements for arm
             print("\n#############\nSINGLE MOVEMENTS\n#############")
             print("WARNING: the addresses used in config settings are not bound to Macros in homing_testing.py\n\n")
-            move_away(rc)                
+            single_move(rc)                
         elif(menuNav == 2):
 #           CASE: Run a single homing run
             print("\n#################\nSINGLE HOMING\n#################")
@@ -186,12 +186,8 @@ def test_main(rc):
                 homing_procedure(rc)
         elif(menuNav == 3):
 #               CASE: Run full testing procedure to test accuracy of arm
-            print("\n##############\nHOMING TESTING\n##############")
-            if(input("\nARM WILL RUN FULL HOMING TEST, confirm? y/n\n\n") == "y"):
-                print(("\nWARNING: Before Testing, please confirm arm is in the ideal home position"))
-                print("This is extremley important for safe and acurate test results")
-                if(input("Do you want to continue? y/n\n\n") == "y"):
-                    full_testing(rc)
+            print("\n##############\nTEST PART OF HOMING\n##############")
+            
         elif(menuNav == 4):
 #           CASE: Leave Testing Environment
             print("\n########################\nLeaving Test Environment\n########################")
