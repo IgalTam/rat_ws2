@@ -374,10 +374,10 @@ def homing_procedure(rc):
     double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, ELBOW_ENC_DEG, ELBOW_ENC_BREAK, ELBOW_SPEED)
 #   Claw Homing
     home_claw_setup_run(rc)
-#   Turn Claw 90 degrees to fit
+#   Turn Claw 90 degrees for alignment
     turn_by_encoder(rc, CLAW_ADDR, CLAW_MOTOR, CLAW_BACKWARD_FULLROT//4, CLAW_SPEED, 1, 3)
-#   Moving wrist to actual home at end
-    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 100, 1, 7)
+#   Moving wrist to actual home at end (45 degrees off from base)
+    turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, (3*WRIST_FULLROT)//8, 100, 1, 7)
 
 
 def arm_setup():

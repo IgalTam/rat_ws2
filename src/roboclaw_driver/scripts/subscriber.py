@@ -12,7 +12,7 @@ class RoboclawNode:
     # config file maps address/channel to index in armCmd.msg
     # number of joints is specified in armCmd.msg AND in joint_config.ini
     parser = ConfigParser()
-    parser.read("/home/pi/ros_stuff/rat_ws2/src/roboclaw_driver/scripts/joint_config.ini")
+    parser.read("/home/pi/rat_ws2/src/roboclaw_driver/scripts/joint_config.ini")
     num_joints = int(parser['JOINTS']['num_joints'])
     joint_addresses= parser['JOINTS']['addresses'].split(", ") # address of roboclaw for that joint
     joint_channels = parser['JOINTS']['channels'].split(", ")
@@ -61,8 +61,8 @@ class RoboclawNode:
             address = int(self.joint_addresses[i]) # default: 0x80 or 128
             channel = int(self.joint_channels[i])
             cnts_per_rev = int(self.joint_cnts_per_rev[i])
-            # if i == 2: # need to set the wrist to 90 degrees
-            #     # cnts_per_rev += cnts_per_rev//4
+            # if i == 2: # set the wrist to 45 degrees for home position
+            #     cnts_per_rev += cnts_per_rev//8
             if channel == 1:
                 self.rc.SetEncM1(address,cnts_per_rev)
             if channel == 2:
@@ -162,10 +162,9 @@ class RoboclawNode:
         #    # print("data stabilized")
             
         # else:
-        #     # print("same data recieved")
+        #    # print("same data recieved")
         #     return
         # if self.float_list_cmp(self.writtendata.position_rads, data.position_rads):
-        #     # print('float list comp check')
         #     return
         print("writing")
         
