@@ -380,11 +380,35 @@ def homing_procedure(rc):
     turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, WRIST_FULLROT//2, 100, 1, 7)
 
 
+def arm_setup():
+#   OBJECTIVE: setup procedure when it is time to wake up the arm. The is no case where the arm
+#              can return a failed attempt to home/setup. If ot fails it will be stuck in the homing loop
+
+#   TODO: Turning on a pin for the roboclaw power
+    time.sleep(3)
+#   waiting 3 seconds to ensure the arm is powered up
+    rc = Roboclaw("/dev/ttyS0", 115200)
+#   configure Roboclaws
+    rc.Open()
+#   generate/open port
+    time.skeep(1)
+    homing_procedure(rc)
+#   Running of basic homing procedure
+#   TODO: Set all roboclaw encoder values to zero
+
+    return rc
+#   returns the rc object to call to the UART channels
+
+def arm_shutdown(rc):
+#   OBJECTIVE: Called when it is time to power down the arm 
+    kill_all_motors(rc)
+
+    return 0
 
 # anirudh and trenten claw protocol for testing main
 def main(cmd_call=None):
     #   configure Roboclaws
-    rc = Roboclaw("/dev/ttyAMA1", 115200)
+    rc = Roboclaw("/dev/ttyS0", 115200)
 #   generate/open port
     rc.Open()
     if cmd_call == "one":

@@ -206,7 +206,7 @@ def test_main(rc):
 
 def main():
 #   configure Roboclaws
-    rc = Roboclaw("/dev/ttyAMA1", 115200)
+    rc = Roboclaw("/dev/ttyS0", 115200)
 #   generate/open port
     rc.Open()
     
