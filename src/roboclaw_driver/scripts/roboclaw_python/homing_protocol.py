@@ -33,7 +33,7 @@ ELBOW_FULLROT = 3250
 # Number of encoder values to make on full rotation
 ELBOW_ENC_DEG = 9
 # Amount and direction the homing will step the wrist per move
-ELBOW_ENC_BREAK = 8
+ELBOW_ENC_BREAK = 7
 # The max encoder values that will cause a home detection for the ELBOW 
 ELBOW_SPEED = 60
 # Speed of ELBOW while homing
