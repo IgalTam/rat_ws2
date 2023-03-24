@@ -280,6 +280,8 @@ def home_base(homed, rc):
                 time.sleep(10)
 
         prev_pos = cur_pos
+    rc.SpeedAccelDeccelPositionM1(BASE_ADDR, accel, speed, deccel, 0, 1)
+    time.sleep(5)
 
     return 0
 
