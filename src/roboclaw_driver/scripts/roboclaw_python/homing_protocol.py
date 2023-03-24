@@ -33,7 +33,7 @@ ELBOW_FULLROT = 3250
 # Number of encoder values to make on full rotation
 ELBOW_ENC_DEG = 9
 # Amount and direction the homing will step the wrist per move
-ELBOW_ENC_BREAK = 7
+ELBOW_ENC_BREAK = 8
 # The max encoder values that will cause a home detection for the ELBOW 
 ELBOW_SPEED = 60
 # Speed of ELBOW while homing
@@ -309,7 +309,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal, spe
     while not (trueHome):
         stepBack = (-1 * encoderVal * 10)
 #       the ammount the arm will step back before attempting the homing again
-        turn_by_encoder(rc, address, motorNum, stepBack, speed, 1, 1)
+        turn_by_encoder(rc, address, motorNum, stepBack, speed, 1, 3)
 
         time.sleep(2)
 
@@ -391,7 +391,7 @@ def arm_setup():
 #   configure Roboclaws
     rc.Open()
 #   generate/open port
-    time.skeep(1)
+    time.sleep(1)
     homing_procedure(rc)
 #   Running of basic homing procedure
 #   TODO: Set all roboclaw encoder values to zero
