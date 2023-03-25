@@ -49,8 +49,8 @@ class VisionCommunication:
         self.mgi = MoveGroupInterface()
         self.bus = I2CBus()
 
-    def send_i2c_cmd(self):
-        """I2C communication with the Vision team's Jetson Nano to the Arm team's
+    def call_i2c_cmd(self):
+        """Request I2C communication with the Vision team's Jetson Nano to send data to the Arm team's
         Raspberry Pi."""
 
         # Wait for response
@@ -86,7 +86,7 @@ class VisionCommunication:
         """Checks to see if the vision system is ready to receive commands."""
 
         while True:
-            data_packets = self.send_i2c_cmd()
+            data_packets = self.call_i2c_cmd()
             if data_packets == "Ready":
                 self.readyFlag = True
                 print("\nReady detected, waiting for coordinates.")
@@ -98,7 +98,7 @@ class VisionCommunication:
 
         data_packets = None
         while data_packets is None:
-            data_packets = self.send_i2c_cmd()
+            data_packets = self.call_i2c_cmd()
         
         return data_packets
     
@@ -119,7 +119,7 @@ class VisionCommunication:
 
         data_packets = None
         while data_packets is None:
-            data_packets = self.send_i2c_cmd()
+            data_packets = self.call_i2c_cmd()
 
         # Test
         # data_packets = "x12y13z15a120"
@@ -253,8 +253,8 @@ class VisionCommunication:
         if self.firstPickUp is True:
             print('\nVerifying pickup...\n')
             self.move_tube()
-            self.send_i2c_cmd()
-            time.sleep(30)
+            self.call_i2c_cmd()
+            time.sleep(20)
 
             # If the vision system can't find the tube in a minute, then there is no tube
             if self.tubeFlag is True:
