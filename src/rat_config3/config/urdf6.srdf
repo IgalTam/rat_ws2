@@ -24,7 +24,7 @@
     <group_state name="zeroed" group="rat_arm">
         <joint name="base_joint" value="0"/>
         <joint name="elbow_joint" value="0"/>
-        <joint name="wrist_joint" value="0.78539"/>
+        <joint name="wrist_joint" value="0"/>
     </group_state>
     <group_state name="up" group="rat_arm">
         <joint name="base_joint" value="0"/>

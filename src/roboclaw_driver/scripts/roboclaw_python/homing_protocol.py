@@ -280,6 +280,8 @@ def home_base(homed, rc):
                 time.sleep(10)
 
         prev_pos = cur_pos
+    rc.SpeedAccelDeccelPositionM1(BASE_ADDR, accel, speed, deccel, 0, 1)
+    time.sleep(5)
 
     return 0
 
@@ -309,7 +311,7 @@ def double_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal, spe
     while not (trueHome):
         stepBack = (-1 * encoderVal * 10)
 #       the ammount the arm will step back before attempting the homing again
-        turn_by_encoder(rc, address, motorNum, stepBack, speed, 1, 1)
+        turn_by_encoder(rc, address, motorNum, stepBack, speed, 1, 4)
 
         time.sleep(2)
 
@@ -337,7 +339,7 @@ def multi_run_homing(rc: Roboclaw, address, motorNum, encoderVal, breakVal, spee
 #   TODO: Run possible 3 checks or mind a way to prevent a second false positive from getting through
 #   TODO: Make sure the stepback wont hit something by insuring the stepback is less than the amount moved already
     trueHome = False
-    # recordedHomes = list[5]
+#   recordedHomes = list[5]
 
     firstStop = step_till_stop(rc, address, motorNum, encoderVal, breakVal, speed)
 #   First attempt at homing
@@ -380,30 +382,39 @@ def homing_procedure(rc):
     turn_by_encoder(rc, WRIST_ADDR, WRIST_MOTOR, (3*WRIST_FULLROT)//8, 100, 1, 7)
 
 
+def arm_setup():
+#   OBJECTIVE: setup procedure when it is time to wake up the arm. The is no case where the arm
+#              can return a failed attempt to home/setup. If ot fails it will be stuck in the homing loop
+
+#   TODO: Turning on a pin for the roboclaw power
+    time.sleep(3)
+#   waiting 3 seconds to ensure the arm is powered up
+    rc = Roboclaw("/dev/ttyS0", 115200)
+#   configure Roboclaws
+    rc.Open()
+#   generate/open port
+    time.sleep(1)
+    homing_procedure(rc)
+#   Running of basic homing procedure
+#   TODO: Set all roboclaw encoder values to zero
+
+    return rc
+#   returns the rc object to call to the UART channels
+
+def arm_shutdown(rc):
+#   OBJECTIVE: Called when it is time to power down the arm 
+    kill_all_motors(rc)
+
+    return 0
 
 # anirudh and trenten claw protocol for testing main
 def main(cmd_call=None):
     #   configure Roboclaws
-    rc = Roboclaw("/dev/ttyAMA1", 115200)
+    rc = Roboclaw("/dev/ttyS0", 115200)
 #   generate/open port
     rc.Open()
     if cmd_call == "one":
         homing_procedure(rc)
-    # print("here\n\n")
-    # test_setup(rc)
-    # home_base_setup_run(rc)
-    # home_claw_setup_run(rc)
-
-    # double_run_homing(rc, WRIST_ADDR, WRIST_MOTOR, TEST_WRIST_ENC_DEG, 4)
-    # double_run_homing(rc, ELBOW_ADDR, ELBOW_MOTOR, TEST_ELBOW_ENC_DEG, 6)
-
-
-# sebastian homing protocol main
-# def main():
-# #   configure Roboclaws
-#     rc = Roboclaw("/dev/ttyAMA1", 115200)
-# #   generate/open port
-#     rc.Open()
 
 
 if __name__ == "__main__":
