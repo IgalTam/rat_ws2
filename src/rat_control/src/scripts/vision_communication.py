@@ -307,7 +307,7 @@ class VisionCommunication:
                     print('\nChecking for Ready Command...')
                     self.vision_ready()
 
-            if user == '4': #:         # and self.readyFlag is True <-- Does not work anymore since Jetson Nano has a boot file now
+            if user == '4':         # and self.readyFlag is True <-- Does not work anymore since Jetson Nano has a boot file now
                 try:
                     print('\nTaking a picture and getting data packets...')
                     self.xFlag = False
