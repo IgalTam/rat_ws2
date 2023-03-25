@@ -36,7 +36,7 @@ class VisionCommunication:
 
     def __init__(self):
         self.xFlag = False
-        self.zFlag = False
+        self.yFlag = False
         self.maxDistanceArm = 30
         self.tubeFlag = False
         self.looped = False
@@ -71,8 +71,10 @@ class VisionCommunication:
             if data != 'none':
                 print(f"data: {data}")
 
+                # Return coordinates
                 return data
             else:
+                # For when the vision system has not picked up a tube yet
                 self.tubeFlag = True
             
     def i2c_image(self):
@@ -122,11 +124,13 @@ class VisionCommunication:
         # Test
         # data_packets = "x12y13z15a120"
 
+        # Parse coordinate values
         x: float = float(data_packets[data_packets.index('x') + 1: data_packets.index('y')])
         y: float = float(data_packets[data_packets.index('y') + 1: data_packets.index('z')]) - self.Y_OFF
         z: float = float(data_packets[data_packets.index('z') + 1: data_packets.index('a')]) - self.Z_OFF
         theta = int(float(data_packets[data_packets.index('a') + 1: ]))
 
+        # Flag for when the vision system has picked up a tube
         self.dataFlag = True
 
         print(f"\nData: x: {x}, y: {y}, z: {z}, theta: {theta}\n")
@@ -154,6 +158,7 @@ class VisionCommunication:
         if x != 0:
             print('\nTurning rover...')
 
+            # Flag is true when the rover is turning
             self.xFlag = True
             turnDirection = None
 
@@ -169,7 +174,6 @@ class VisionCommunication:
 
             print(f"Turn {turnAngle} degrees to the {turnDirection}.\n")
             
-            # Call function to calculate angle
             # Tank Turn Function:
             # rov.do_tank_turn(angle)
 
@@ -186,7 +190,8 @@ class VisionCommunication:
         if y > self.maxDistanceArm:
             print('\nMoving rover forward...')
 
-            self.zFlag = True
+            # Flag is true when the rover is moving forward
+            self.yFlag = True
 
             # Calculate distance for going forward
             move_distance = y - self.maxDistanceArm
@@ -201,14 +206,14 @@ class VisionCommunication:
             
         else:
             print('\nThe rover is already close enough to the sample tube.\n')
-            self.zFlag = False
+            self.yFlag = False
     
     def position_set(self, y, z, theta):
         """If the rover had to do any tank turns or move forward, turn back on 
         the vision system to obtain new data packets. Otherwise, send y, z, and 
         theta values to ROS."""
 
-        if self.xFlag is False and self.zFlag is False:
+        if self.xFlag is False and self.yFlag is False:
             print('\nMoving arm to sample tube...\n')
 
             # Functionality for interfacing with ROS
@@ -277,7 +282,7 @@ class VisionCommunication:
 
             print('3. Check for Ready Command')
 
-            print('4. Take a Picture and Get Data Packets')
+            print('4. Take a Picture and Get Coordinates')
 
             print('5. Tank Turn')
 
@@ -302,10 +307,10 @@ class VisionCommunication:
                     print('\nChecking for Ready Command...')
                     self.vision_ready()
 
-            if user == '4' and self.readyFlag is True:
+            if user == '4':         # and self.readyFlag is True <-- Does not work anymore since Jetson Nano has a boot file now
                 print('\nTaking a picture and getting data packets...')
                 self.xFlag = False
-                self.zFlag = False
+                self.yFlag = False
                 self.data = self.vision_system()
 
             if self.readyFlag is False and self.dataFlag is False:
